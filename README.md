@@ -37,6 +37,16 @@ A web-based platform that gives students a single place to discover internship o
 
 ---
 
+## Architecture
+
+The system is designed as a **three-layer modular monolith** (SAD §3.5):
+
+- **Presentation Layer:** React 18 Single Page Application built with Vite 5.
+- **Application / API Layer:** Node.js 22 LTS + Express 4.21.x organized into modules M1–M7. Business logic, aptitude test scoring, and performance analysis run within Node.js (no separate Python service, ADR-07).
+- **Data Layer:** MongoDB 7 accessed exclusively via Mongoose 8.x ODM. Direct database access from the browser is never permitted.
+
+---
+
 ## Project Documents
 
 | Document | Description |
@@ -64,7 +74,7 @@ A web-based platform that gives students a single place to discover internship o
 ```bash
 # Clone
 git clone <repo-url>
-cd online-internship-placement-portal-1
+cd online-internship-placement-portal
 
 # Install root, server, and client dependencies
 npm install          # root (concurrently scripts)

@@ -187,18 +187,15 @@ Add/Edit/Delete         Add/Edit/Delete
 
 # 7. Non-Functional Requirements
 
-> Exact measurable values should be finalized by the team before submission. Do not use vague terms such as "very fast" or "highly secure."
+> Source: SRS v1.0 §5. These values are finalized and submitted.
 
-| ID | Non-Functional Requirement | Category |
-|---|---|---|
-| NFR-01 | The system shall respond to normal user requests within the response-time limit defined by the team under normal operating conditions. | Performance |
-| NFR-02 | The system shall require authentication before allowing access to student-specific information. | Security |
-| NFR-03 | The system shall prevent unauthorized users from accessing administrative functions. | Security |
-| NFR-04 | The system shall protect stored student, application and test-result data from unauthorized access. | Security |
-| NFR-05 | The system shall maintain the correctness and consistency of stored application and test-result data. | Data Integrity |
-| NFR-06 | The system shall provide clear navigation between internship, aptitude-test, progress and analysis functions. | Usability |
-| NFR-07 | The system shall function correctly on the web browsers supported by the project. | Compatibility |
-| NFR-08 | The system shall display an appropriate error message when a user operation cannot be completed. | Reliability/Usability |
+| ID | Non-Functional Requirement | Category | Test |
+|---|---|---|---|
+| NFR-01 | For normal portal operations under the expected test load, the system shall return a successful user request within 3 seconds for at least 95% of measured requests. | Performance | TC-PERF-01 |
+| NFR-02 | The system shall require authentication before access to student-specific applications, test results, progress, or performance information. | Security | TC-SEC-01 |
+| NFR-03 | The system shall deny administrator functions to authenticated users without administrator authorization. | Security | TC-SEC-02 |
+| NFR-04 | The system shall keep application and test-result records associated with the correct student and internship/test. | Data Integrity | TC-DATA-01 |
+| NFR-05 | The system shall provide direct navigation from the student dashboard to internships, applications, aptitude tests, progress, and performance analysis. | Usability | TC-UX-01 |
 
 ---
 
@@ -216,17 +213,22 @@ Ensure that only authenticated and authorized users can access protected student
 
 # 9. Security Requirements
 
-### SR-01 — Authentication
-The system shall require users to authenticate before accessing protected student-specific information.
+> Source: SRS v1.0 §5.1.2.
 
-### SR-02 — Authorization
+### SR-01 — Authentication · TC-SEC-01
+The system shall require authentication before protected student-specific information is accessed.
+
+### SR-02 — Authorization · TC-SEC-02
 The system shall restrict administrative functions to authorized administrator accounts.
 
-### SR-03 — Password Protection
+### SR-03 — Password Protection · TC-SEC-03
 The system shall not store user passwords in plain text.
 
-### SR-04 — Protected Student Data
-The system shall prevent unauthorized users from accessing another student's application and performance information.
+### SR-04 — Protected Student Data · TC-SEC-04
+The system shall prevent a student from accessing another student's application, test-result, progress, or performance information through normal application functions.
+
+### SR-05 — Backend/API Authorization · TC-SEC-05
+The system shall validate authorization on protected backend/API operations, not only through frontend controls.
 
 ---
 
@@ -263,12 +265,19 @@ The SRS must contain at least one UML use case diagram.
 
 | Layer | Choice |
 |---|---|
-| Frontend | React **18**, Vite **5** |
-| Backend | Node.js **22 LTS**, Express **4.21.x** (CommonJS) |
+| Runtime | Node.js **22 LTS** (`.nvmrc` contains `22`) |
+| Backend | Express **4.21.x**, CommonJS (`require`) |
 | Database / ODM | MongoDB **7**, Mongoose **8.x** |
-| Auth | `jsonwebtoken` 9.x, `bcryptjs` 2.4.x |
+| Auth | `jsonwebtoken` 9.x, `bcryptjs` 2.4.x (salt rounds 10) |
+| Validation | `zod` **3.x** (use `.strict()` on body schemas to reject unknown fields) |
+| Security | `helmet` 8.x, `cors` 2.x, `express-rate-limit` 7.x |
+| Server tests | `jest` 29.x, `supertest` 7.x, `mongodb-memory-server` 10.x, `cross-env` |
+| Frontend | React **18**, Vite **5**, `react-router-dom` **6**, `axios` 1.x |
+| Charts | `recharts` 2.x (analysis charts only) |
+| Client tests | `vitest` 2.x, `@testing-library/react`, `@testing-library/jest-dom`, `jsdom` |
+| Styling | Plain CSS with design tokens in `client/src/styles/global.css` (no Tailwind, no UI kits) |
 | Analysis | Implemented inside Node.js — **no Python** (ADR-07) |
-| Styling | Plain CSS, design tokens in `client/src/styles/global.css` |
+| CI | GitHub Actions (`.github/workflows/ci.yml`) |
 
 **Architecture pattern:** Three-layer modular monolith (SAD §3.5).
 
@@ -465,22 +474,35 @@ The Test Plan must be linked to the SRS requirements.
 
 The project requires functional and non-functional testing, security validation and traceability.
 
-### Initial test cases
+### Final Test Case Mapping
 
-| Test ID | Requirement | Test |
-|---|---|---|
-| TC-01 | FR-01 | Verify student registration with valid information |
-| TC-02 | FR-02 | Verify login with valid credentials |
-| TC-03 | FR-03/FR-04 | Verify internship listing and search/filter |
-| TC-04 | FR-06 | Verify internship application |
-| TC-05 | FR-09 | Verify aptitude-test submission |
-| TC-06 | FR-10 | Verify score calculation |
-| TC-07 | FR-13 | Verify progress tracking |
-| TC-08 | FR-14 | Verify performance analysis |
-| TC-09 | SR-01/SR-02 | Verify unauthorized access is blocked |
-| TC-10 | NFR-01 | Verify response-time requirement |
+| Test ID | Requirement | Test Case Description | Scope / Preconditions |
+|---|---|---|---|
+| TC-AUTH-01 | FR-01 | Verify student registration with valid and invalid information | Student registration; clear rejection on invalid/missing fields |
+| TC-AUTH-02 | FR-02 | Verify student and administrator login with valid and invalid credentials; verify unauthenticated access to protected pages is denied | Valid logins succeed; invalid credentials rejected; protected pages denied |
+| TC-INT-01 | FR-03 | Verify available internship listings display to authenticated students | Active internship listings rendered correctly |
+| TC-INT-02 | FR-04 | Verify searching and filtering internships using supported criteria | Search by title/company, category filter, location filter; empty search handled |
+| TC-INT-03 | FR-05 | Verify internship details display for a selected listing | Stored details and application status rendered |
+| TC-APP-01 | FR-06 | Verify internship application submission for an available internship | Authenticated student applies; duplicate applications prevented |
+| TC-APP-02 | FR-07 | Verify student can view their submitted internship applications | Caller's applications only; shows correct status and internship info |
+| TC-TEST-01 | FR-08 | Verify available aptitude tests display to students | Tests with >= 1 question listed with counts and marks |
+| TC-TEST-02 | FR-09 | Verify taking an aptitude test and submitting answers | One question at a time; options without correct answer exposed |
+| TC-TEST-03 | FR-10 | Verify test evaluation and server-side score calculation | Score, percentage, and category breakdown calculated on server |
+| TC-TEST-04 | FR-11 | Verify student can view their aptitude-test results and result detail | List of attempts; individual result breakdown with category scores |
+| TC-PROG-01 | FR-12 | Verify student preparation activities are recorded | Activities recorded for test completions and internship applications |
+| TC-PROG-02 | FR-13 | Verify student preparation progress and recent activity display | Available vs completed tests, attempt counts, recent 10 activities |
+| TC-PERF-01 | FR-14, NFR-01 | Verify performance analysis display and portal response-time target | Aggregated metrics, trend, category accuracy; >= 95% of requests complete within 3 seconds |
+| TC-ADM-01 | FR-15 | Verify administrator can add, update, and remove internship listings | Admin CRUD operations on internships; cascade delete of applications |
+| TC-ADM-02 | FR-16 | Verify administrator can manage aptitude tests and questions | Admin CRUD for tests and questions; viewing full details including correctOption |
+| TC-SEC-01 | SR-01, NFR-02 | Verify authentication required before accessing student-specific information | Unauthenticated access rejected with 401 UNAUTHORIZED |
+| TC-SEC-02 | SR-02, NFR-03 | Verify administrator functions are restricted to authorized administrators | Student accounts denied admin routes with 403 FORBIDDEN_ADMIN_ONLY |
+| TC-SEC-03 | SR-03 | Verify user passwords are not stored or returned in plain text | Passwords hashed with bcryptjs (10 rounds); never selected or returned |
+| TC-SEC-04 | SR-04 | Verify students cannot access other students' applications, results, or data | Student identity taken strictly from verified JWT; foreign records 404 |
+| TC-SEC-05 | SR-05 | Verify backend/API authorization enforcement independently of frontend controls | Direct API calls without valid token or role are rejected |
+| TC-DATA-01 | NFR-04 | Verify data integrity for applications and test results | Unique compound index prevents duplicates; results recorded once |
+| TC-UX-01 | NFR-05 | Verify direct dashboard navigation to all key student modules | Internships, applications, aptitude tests, progress, and performance analysis reachable |
 
-> The final Test Plan should contain sufficient test cases and should cover both functional and non-functional requirements.
+> **Note on NFR-01:** `CLAUDE.md` uses `NFR-01` as the identifier for the automated performance measurement script (`server/scripts/perf-test.js`), while the SRS and Test Plan map requirement NFR-01 to test case `TC-PERF-01`. Both references describe the same 3-second / 95% response-time target.
 
 ---
 
@@ -515,7 +537,7 @@ POST /api/applications
         ↓
 Internship Application Sequence Diagram
         ↓
-TC-04
+TC-APP-01
 ```
 
 ---
@@ -524,10 +546,11 @@ TC-04
 
 | Security Objective | Security Requirement | Validation |
 |---|---|---|
-| SO-01 Protect user information | SR-04 Protected student data | TC-09 |
-| SO-02 Protect authentication/admin access | SR-01 Authentication | TC-09 |
-| SO-02 Protect authentication/admin access | SR-02 Authorization | TC-09 |
-| SO-01 Protect user information | SR-03 Password protection | Security validation |
+| SO-01 Protect user information | SR-03 Password protection | TC-SEC-03 |
+| SO-01 Protect user information | SR-04 Protected student data | TC-SEC-04 |
+| SO-02 Protect authentication/admin access | SR-01 Authentication | TC-SEC-01 |
+| SO-02 Protect authentication/admin access | SR-02 Authorization | TC-SEC-02 |
+| SO-02 Protect authentication/admin access | SR-05 Backend/API authorization | TC-SEC-05 |
 
 ---
 
@@ -707,4 +730,4 @@ If yes, update this file first.
 
 | Date | Summary |
 |---|---|
-| 12-10-2026 | **Architecture, API & Decisions update.** §11 updated with pinned stack (React 18 + Vite 5, Node.js 22 + Express 4, MongoDB 7 + Mongoose 8) and corrected three-layer architecture diagram; no-Python rule (ADR-07) documented. §13 renamed from placeholder to confirmed three-layer modular monolith pattern with module M1-M7 note. §15 renamed from "Initial API Design" to "API Design" and expanded from 11-row baseline to full 26-row finalized API table matching CLAUDE.md §6; two additional endpoints marked ✱ (deviation D-03: `/api/internships/meta`, deviation D-04: admin test detail endpoints). §22 migrated all "Must be finalized" items into "Already defined" with concrete decisions: NFR-01 = 95% of requests within 3 s; supported browsers = current and previous stable Chrome, Edge, Firefox; auth = JWT + bcrypt; student application status = "Submitted" only; analysis metrics = avg/best/latest percentage, per-category accuracy, strongest/weakest category, chronological trend (last 20 results); admin scope = FR-15 + FR-16 only; no Python (ADR-07); API = §15; architecture pattern = three-layer modular monolith. |
+| 12-10-2026 | **Full requirements baseline and traceability alignment.** §7 updated with exact submitted SRS v1.0 §5 NFRs (NFR-01..05) and measurable 3-second/95% target, removing obsolete NFR-06..08. §9 updated with complete SR-01..05 including backend authorization enforcement (SR-05) and test mappings. §11 updated with complete pinned stack from CLAUDE.md §2, three-layer modular monolith architecture, and Node.js-only analysis (no Python, ADR-07). §15 updated to full 26-endpoint API table with ✱ marks for additional endpoints (meta and admin test detail). §17 replaced preliminary TC-01..10 with final named test IDs (TC-AUTH, TC-INT, TC-APP, TC-TEST, TC-PROG, TC-PERF, TC-ADM, TC-SEC, TC-DATA, TC-UX) from SRS and Test Plan V2. §18 updated application traceability example to TC-APP-01. §19 mapped security requirements to TC-SEC-01..05. §22 moved all confirmed technical decisions into "Already defined". |
