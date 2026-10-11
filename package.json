@@ -1,0 +1,12 @@
+{
+  "name": "oipp",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n server,client -c blue,green \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
+    "seed": "npm --prefix server run seed",
+    "test": "npm --prefix server test && npm --prefix client test"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
