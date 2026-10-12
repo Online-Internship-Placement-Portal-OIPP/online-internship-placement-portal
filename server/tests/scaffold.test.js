@@ -184,7 +184,7 @@ describe('Scaffold and Foundation Tests', () => {
     });
   });
 
-  describe('TC-SEC-01 · ObjectId Validation Utility', () => {
+  describe('Utility: ObjectId Validation Utility', () => {
     it('accepts valid 24-hex string', () => {
       const validHex = '507f1f77bcf86cd799439011';
       expect(objectIdSchema.safeParse(validHex).success).toBe(true);
@@ -198,7 +198,7 @@ describe('Scaffold and Foundation Tests', () => {
     });
   });
 
-  describe('TC-SEC-02 · Logger Redaction Utility', () => {
+  describe('Utility: Logger Redaction Utility', () => {
     it('redacts sensitive fields including password, token, correctOption, authorization, jwt', () => {
       const raw = {
         name: 'Alice',

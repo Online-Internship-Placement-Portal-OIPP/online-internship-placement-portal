@@ -22,6 +22,10 @@ const resultSchema = new mongoose.Schema(
       type: Number,
       min: 0,
       max: 100,
+      validate: {
+        validator: Number.isInteger,
+        message: 'percentage must be an integer'
+      }
     },
     categoryScores: [
       {
@@ -53,4 +57,3 @@ resultSchema.set('toJSON', {
 });
 
 module.exports = mongoose.model('Result', resultSchema);
-
