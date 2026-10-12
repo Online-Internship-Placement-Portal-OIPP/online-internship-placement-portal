@@ -18,14 +18,21 @@ const questionSchema = new mongoose.Schema(
       type: [String],
       required: true,
       validate: {
-        validator: (arr) => arr.length >= 2 && arr.length <= 6 && arr.every((o) => o.length > 0),
+        validator: (arr) => Array.isArray(arr) && arr.length >= 2 && arr.length <= 6 && arr.every((o) => typeof o === 'string' && o.trim().length > 0),
         message: 'Options must contain 2–6 non-empty strings.',
       },
     },
     correctOption: {
       type: Number,
       required: true,
+      min: 0,
       select: false,
+      validate: {
+        validator: function(val) {
+          return !this.options || val < this.options.length;
+        },
+        message: 'correctOption must be a valid 0-based index within options.',
+      },
     },
     category: {
       type: String,
@@ -43,11 +50,11 @@ const questionSchema = new mongoose.Schema(
 
 questionSchema.set('toJSON', {
   transform(doc, ret) {
-    ret.id = ret._id.toString();
-    delete ret._id;
+    if (ret._id) {
+      ret.id = ret._id.toString();
+      delete ret._id;
+    }
     delete ret.__v;
-    delete ret.passwordHash;
-    delete ret.correctOption;
     return ret;
   },
 });

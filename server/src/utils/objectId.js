@@ -7,9 +7,7 @@ const mongoose = require('mongoose');
 /** Zod schema that validates a 24-character hex string as a valid ObjectId. */
 const objectIdSchema = z
   .string()
-  .refine((val) => mongoose.Types.ObjectId.isValid(val), {
-    message: 'Invalid ID format',
-  });
+  .regex(/^[0-9a-fA-F]{24}$/, 'Invalid ID format');
 
 /**
  * Check whether a value is a valid MongoDB ObjectId.
@@ -17,6 +15,9 @@ const objectIdSchema = z
  * @returns {boolean}
  */
 function isValidObjectId(val) {
+  if (typeof val === 'string') {
+    return /^[0-9a-fA-F]{24}$/.test(val);
+  }
   return mongoose.Types.ObjectId.isValid(val);
 }
 

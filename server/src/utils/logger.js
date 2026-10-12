@@ -5,7 +5,7 @@
  */
 
 /** Keys that must never appear in logs. */
-const SENSITIVE_KEYS = ['password', 'passwordHash', 'token', 'correctOption'];
+const SENSITIVE_KEYS = ['password', 'passwordHash', 'token', 'correctOption', 'authorization', 'Authorization', 'jwt'];
 
 /**
  * Recursively remove sensitive keys from an object (returns a shallow copy).
