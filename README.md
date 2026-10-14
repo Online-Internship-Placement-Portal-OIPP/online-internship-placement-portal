@@ -62,8 +62,6 @@ The system is designed as a **three-layer modular monolith** (SAD §3.5):
 
 ## Getting Started
 
-> ⚠️ **These steps are placeholders.** Commands will be verified and updated once the relevant implementation is complete. Do not treat them as tested instructions until this notice is removed.
-
 ### Prerequisites
 
 - Node.js 22 LTS — use [nvm](https://github.com/nvm-sh/nvm): `nvm use` (reads `.nvmrc`)
@@ -105,11 +103,24 @@ CLIENT_ORIGIN=http://localhost:5173
 ### 3 — Seed the database
 
 ```bash
-# Run from the repo root (placeholder — verify once seed.js is implemented)
+# Run from the repo root
 npm run seed
 ```
 
 The seed script creates at least one admin account. Admin accounts **cannot** be created through the registration form.
+
+### Seeded accounts
+
+`npm run seed` clears the development database and creates these demo accounts:
+
+| Role | Email | Password |
+|---|---|---|
+| Administrator | `admin@oipp.test` | `Admin@12345` |
+| Student | `asha@oipp.test` | `Student@123` |
+| Student | `ravi@oipp.test` | `Student@123` |
+| Student | `meera@oipp.test` | `Student@123` |
+
+Ravi has two sample internship applications and two aptitude-test results, so the progress and performance-analysis screens have meaningful demo data.
 
 ### 4 — Run the application
 
