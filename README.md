@@ -111,6 +111,19 @@ npm run seed
 
 The seed script creates at least one admin account. Admin accounts **cannot** be created through the registration form.
 
+### Seeded accounts
+
+`npm run seed` clears the development database and creates these demo accounts:
+
+| Role | Email | Password |
+|---|---|---|
+| Administrator | `admin@oipp.test` | `Admin@12345` |
+| Student | `asha@oipp.test` | `Student@123` |
+| Student | `ravi@oipp.test` | `Student@123` |
+| Student | `meera@oipp.test` | `Student@123` |
+
+Ravi has two sample internship applications and two aptitude-test results, so the progress and performance-analysis screens have meaningful demo data.
+
 ### 4 — Run the application
 
 ```bash
