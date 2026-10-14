@@ -57,8 +57,8 @@ const internshipData = [
   ['Cloud Operations Intern', 'Nimbus Stack', 'Chennai', 'Cloud & DevOps', 31, 'open'],
   ['Full Stack Intern', 'Campus Connect', 'Remote', 'Web Development', 35, 'open'],
   ['Machine Learning Intern', 'DataNest', 'Bengaluru', 'Data Science', 40, 'open'],
-  ['QA Automation Intern', 'Quality First', 'Kochi', 'Software Development', 12, 'closed'],
-  ['DevOps Intern', 'DeployRight', 'Delhi', 'Cloud & DevOps', 56, 'closed'],
+  ['QA Automation Intern', 'Quality First', 'Kochi', 'Software Development', -7, 'closed'],
+  ['DevOps Intern', 'DeployRight', 'Delhi', 'Cloud & DevOps', -2, 'closed'],
 ].map(([title, company, location, category, days, status]) => ({
   title,
   company,
@@ -86,7 +86,7 @@ const testData = [
     questions: [
       ['What comes next: 2, 4, 8, 16, ?', ['20', '24', '30', '32'], 3, 'Logical', 1],
       ['All roses are flowers. Some flowers fade quickly. Which is certain?', ['All roses fade quickly', 'Some roses fade quickly', 'Roses are flowers', 'No roses fade quickly'], 2, 'Logical', 1],
-      ['If CAT is coded as DBU, DOG is coded as?', ['EPF', 'EOG', 'CPH', 'FPE'], 0, 'Logical', 2],
+      ['If CAT is coded as DBU, DOG is coded as?', ['EPH', 'EOG', 'CPH', 'FPE'], 0, 'Logical', 2],
       ['A is taller than B and B is taller than C. Who is shortest?', ['A', 'B', 'C', 'Cannot say'], 2, 'Logical', 1],
       ['Which does not belong: Square, Triangle, Circle, Rectangle?', ['Square', 'Triangle', 'Circle', 'Rectangle'], 2, 'Logical', 1],
       ['If today is Monday, what day is it after 10 days?', ['Wednesday', 'Thursday', 'Friday', 'Saturday'], 1, 'Logical', 1],
@@ -119,14 +119,12 @@ async function seed() {
   ]);
   const [adminHash, studentHash] = passwordHashes;
 
-  const [admin, asha, ravi, meera] = await User.create([
+  const [, , ravi] = await User.create([
     { name: 'Portal Admin', email: 'admin@oipp.test', passwordHash: adminHash, role: 'admin' },
     { name: 'Asha K', email: 'asha@oipp.test', passwordHash: studentHash, role: 'student' },
     { name: 'Ravi M', email: 'ravi@oipp.test', passwordHash: studentHash, role: 'student' },
     { name: 'Meera S', email: 'meera@oipp.test', passwordHash: studentHash, role: 'student' },
   ]);
-  void admin; void asha; void meera;
-
   const internships = await Internship.insertMany(internshipData);
   const createdTests = [];
   for (const testDefinition of testData) {

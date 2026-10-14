@@ -3,8 +3,8 @@ const app = require('../src/app');
 const { Application } = require('../src/models');
 const { createStudent, createInternship, createTestWithQuestions } = require('./helpers');
 
-describe('Smoke tests', () => {
-  it('returns an available database from the health endpoint', async () => {
+describe('S0-03 smoke tests', () => {
+  it('TC-HEALTH-01 returns an available database from the health endpoint', async () => {
     const response = await request(app).get('/api/health');
 
     expect(response.status).toBe(200);
@@ -14,14 +14,14 @@ describe('Smoke tests', () => {
     });
   });
 
-  it('returns the standard error envelope for an unknown route', async () => {
+  it('TC-ERR-01 returns the standard error envelope for an unknown route', async () => {
     const response = await request(app).get('/api/does-not-exist');
 
     expect(response.status).toBe(404);
     expect(response.body.error.code).toBe('NOT_FOUND');
   });
 
-  it('rejects malformed JSON without exposing a server error', async () => {
+  it('TC-ERR-02 rejects malformed JSON without exposing a server error', async () => {
     const response = await request(app)
       .post('/api/health')
       .set('Content-Type', 'application/json')
@@ -31,7 +31,7 @@ describe('Smoke tests', () => {
     expect(response.body.error.code).toBe('INVALID_REQUEST');
   });
 
-  it('creates usable documents through the test helpers', async () => {
+  it('TC-SCAF-03 creates usable documents through the test helpers', async () => {
     const student = await createStudent();
     const internship = await createInternship();
     const { test, questions } = await createTestWithQuestions();
@@ -42,7 +42,7 @@ describe('Smoke tests', () => {
     expect(questions).toHaveLength(1);
   });
 
-  it('enforces the application unique index required by NFR-04', async () => {
+  it('NFR-04 / TC-DATA-01 enforces the application unique index', async () => {
     const student = await createStudent();
     const internship = await createInternship();
 

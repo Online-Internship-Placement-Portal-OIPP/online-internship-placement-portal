@@ -62,8 +62,6 @@ The system is designed as a **three-layer modular monolith** (SAD §3.5):
 
 ## Getting Started
 
-> ⚠️ **These steps are placeholders.** Commands will be verified and updated once the relevant implementation is complete. Do not treat them as tested instructions until this notice is removed.
-
 ### Prerequisites
 
 - Node.js 22 LTS — use [nvm](https://github.com/nvm-sh/nvm): `nvm use` (reads `.nvmrc`)
@@ -105,7 +103,7 @@ CLIENT_ORIGIN=http://localhost:5173
 ### 3 — Seed the database
 
 ```bash
-# Run from the repo root (placeholder — verify once seed.js is implemented)
+# Run from the repo root
 npm run seed
 ```
 
