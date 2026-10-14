@@ -1,0 +1,86 @@
+
+# S0-04: Automated testing for the OIPP repository
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Backend testing
+  server:
+    name: server
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: ./server
+        run: npm ci
+
+      - name: Run backend tests
+        working-directory: ./server
+        env:
+          NODE_ENV: test
+          MONGODB_URI_TEST: mongodb://localhost:27017
+          JWT_SECRET: ci-secret
+        run: npm test
+
+  # Frontend testing
+  client:
+    name: client
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        if: ${{ hashFiles('client/package.json') != '' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install frontend dependencies
+        if: ${{ hashFiles('client/package.json') != '' }}
+        working-directory: ./client
+        run: npm ci
+
+      - name: Build frontend
+        if: ${{ hashFiles('client/package.json') != '' }}
+        working-directory: ./client
+        run: npm run build
+
+      - name: Run frontend tests
+        if: ${{ hashFiles('client/package.json') != '' }}
+        working-directory: ./client
+        run: npm test
