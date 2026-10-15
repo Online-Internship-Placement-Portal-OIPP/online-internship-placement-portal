@@ -1,0 +1,27 @@
+
+# S0-04: Automatically label Pull Requests.
+# Configuration for actions/labeler@v5.
+
+backend:
+  - changed-files:
+      - any-glob-to-any-file: 'server/**'
+
+frontend:
+  - changed-files:
+      - any-glob-to-any-file: 'client/**'
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.test.js'
+          - '**/*.test.jsx'
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'docs/**'
+          - '*.md'
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file: '.github/**'

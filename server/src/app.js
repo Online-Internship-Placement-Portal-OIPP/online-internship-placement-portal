@@ -1,3 +1,4 @@
+
 /**
  * Express application setup.
  * Builds the app with middleware, routes and error handling.
@@ -9,13 +10,20 @@ const { ok } = require('./utils/respond');
 const notFound = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
 
+// S0-04: Security middleware
+const requestLogger = require('./middleware/requestLogger');
+const { applySecurity } = require('./middleware/security');
+
 const app = express();
+
+
+ // SECURITY MIDDLEWARE (S0-04)
+app.use(requestLogger);
+applySecurity(app);
 
 // --- Body parser ---
 app.use(express.json({ limit: '100kb' }));
 
-// SECURITY MIDDLEWARE (S0-04)
-// helmet, cors, rate limiters will be mounted here.
 
 // --- Health check ---
 app.get('/api/health', (req, res) => {
