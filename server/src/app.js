@@ -16,12 +16,14 @@ const { applySecurity } = require('./middleware/security');
 
 const app = express();
 
+
+ // SECURITY MIDDLEWARE (S0-04)
+app.use(requestLogger);
+applySecurity(app);
+
 // --- Body parser ---
 app.use(express.json({ limit: '100kb' }));
 
-// SECURITY MIDDLEWARE (S0-04)
-app.use(requestLogger);
-applySecurity(app);
 
 // --- Health check ---
 app.get('/api/health', (req, res) => {

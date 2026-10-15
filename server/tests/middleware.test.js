@@ -263,3 +263,97 @@ describe('TC-SEC-02 authorization middleware', () => {
   });
 
 });
+
+/**
+ * S0-04 Review Fix F-02:
+ * Tests for security headers, CORS and request logging.
+ *
+ * These tests use the REAL Express application.
+ */
+
+const realApp = require('../src/app');
+const config = require('../src/config/env');
+
+describe('S0-04 security headers and request logging', () => {
+
+  test('normal requests receive security headers and a request ID', async () => {
+    const response = await request(realApp)
+      .get('/api/health')
+      .set('Origin', config.CLIENT_ORIGIN);
+
+    expect(response.status).toBe(200);
+
+    // Helmet security header
+    expect(response.headers['x-content-type-options'])
+      .toBe('nosniff');
+
+    // Unique request ID from requestLogger
+    expect(response.headers['x-request-id'])
+      .toMatch(/^[0-9a-f-]{36}$/i);
+
+    // CORS header
+    expect(response.headers['access-control-allow-origin'])
+      .toBe(config.CLIENT_ORIGIN);
+  });
+
+  test('malformed JSON still receives security headers', async () => {
+    const response = await request(realApp)
+      .post('/api/health')
+      .set('Content-Type', 'application/json')
+      .set('Origin', config.CLIENT_ORIGIN)
+      .send('{invalid json');
+
+    expect(response.status).toBe(400);
+
+    expect(response.body.success).toBe(false);
+    expect(response.body.error.code).toBe('INVALID_REQUEST');
+
+    expect(response.headers['x-request-id'])
+      .toBeDefined();
+
+    expect(response.headers['x-content-type-options'])
+      .toBe('nosniff');
+
+    expect(response.headers['access-control-allow-origin'])
+      .toBe(config.CLIENT_ORIGIN);
+  });
+
+  test('oversized JSON still receives security headers', async () => {
+    const largeBody = {
+      data: 'x'.repeat(110000),
+    };
+
+    const response = await request(realApp)
+      .post('/api/health')
+      .set('Origin', config.CLIENT_ORIGIN)
+      .send(largeBody);
+
+    expect(response.status).toBe(400);
+
+    expect(response.body.error.code).toBe('INVALID_REQUEST');
+
+    expect(response.headers['x-request-id'])
+      .toBeDefined();
+
+    expect(response.headers['x-content-type-options'])
+      .toBe('nosniff');
+
+    expect(response.headers['access-control-allow-origin'])
+      .toBe(config.CLIENT_ORIGIN);
+  });
+
+  test('CORS does not allow an unapproved origin', async () => {
+    const response = await request(realApp)
+      .get('/api/health')
+      .set('Origin', 'https://unapproved.example');
+
+    expect(response.status).toBe(200);
+
+    expect(response.headers['access-control-allow-origin'])
+      .not.toBe('https://unapproved.example');
+
+    expect(response.headers['access-control-allow-origin'])
+      .toBe(config.CLIENT_ORIGIN);
+  });
+
+});

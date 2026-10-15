@@ -2,7 +2,8 @@
 # S0-04: Automated testing for the OIPP repository
 
 name: CI
-
+permissions:
+  contents: read
 on:
   push:
     branches: [main]
