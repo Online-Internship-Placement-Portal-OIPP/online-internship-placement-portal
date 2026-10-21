@@ -37,13 +37,21 @@ export const LoginPage = () => {
 
     setSubmitting(true);
     try {
-      const response = await authApi.login({ email, password });
+      const response = await authApi.login({ email: email.trim(), password });
       // response format: { success: true, data: { token, role, name, expiresIn } }
       const data = response?.data || response;
       login(data);
 
-      const from = location.state?.from?.pathname || (data.role === 'admin' ? '/admin' : '/dashboard');
-      navigate(from, { replace: true });
+      let destination = data.role === 'admin' ? '/admin' : '/dashboard';
+      if (location.state?.from?.pathname) {
+        const attempted = location.state.from.pathname;
+        if (data.role === 'admin' && attempted.startsWith('/admin')) {
+          destination = attempted;
+        } else if (data.role === 'student' && !attempted.startsWith('/admin')) {
+          destination = attempted;
+        }
+      }
+      navigate(destination, { replace: true });
     } catch (err) {
       setError(err.message || 'Invalid email or password.');
       if (err.details && Array.isArray(err.details)) {
@@ -65,6 +73,9 @@ export const LoginPage = () => {
         Access your OIPP student or administrator account.
       </p>
 
+      {location.state?.message && !error && (
+        <Alert type="success" message={location.state.message} />
+      )}
       {error && <Alert type="danger" message={error} />}
 
       <form onSubmit={handleSubmit} noValidate>

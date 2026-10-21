@@ -13,7 +13,9 @@
  */
 const request = require('supertest');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const app = require('../src/app');
+const config = require('../src/config/env');
 const { User } = require('../src/models');
 
 // setup.js (jest config globalSetup) wires the in-memory MongoDB
@@ -201,14 +203,23 @@ describe('TC-SEC-03 POST /api/register — password security', () => {
 });
 
 // ---------------------------------------------------------------------------
-// FR-02 — Login
+// TC-AUTH-02 — Login & Session Management
 // ---------------------------------------------------------------------------
-describe('POST /api/login — authentication', () => {
+describe('TC-AUTH-02 POST /api/login — user authentication & session', () => {
   beforeEach(async () => {
+    // Seed student user
     await request(app).post('/api/register').send(validPayload());
+
+    // Seed administrator user directly into database (admins are never created via public registration)
+    await User.create({
+      name: 'Admin User',
+      email: 'admin@oipp.test',
+      passwordHash: await bcrypt.hash('AdminSecret123', 10),
+      role: 'admin',
+    });
   });
 
-  it('returns 200 with token, role, name and expiresIn for correct credentials', async () => {
+  it('returns 200 with token, role:student, name and expiresIn for valid student credentials', async () => {
     const res = await request(app)
       .post('/api/login')
       .send({ email: validPayload().email, password: validPayload().password });
@@ -219,7 +230,35 @@ describe('POST /api/login — authentication', () => {
     expect(data.token).toBeDefined();
     expect(data.role).toBe('student');
     expect(data.name).toBe('Alice Smith');
-    expect(data.expiresIn).toBeGreaterThan(0);
+    expect(data.expiresIn).toBe(config.JWT_EXPIRES_IN || 3600);
+  });
+
+  it('returns 200 with token, role:admin, name and expiresIn for valid admin credentials', async () => {
+    const res = await request(app)
+      .post('/api/login')
+      .send({ email: 'admin@oipp.test', password: 'AdminSecret123' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    const { data } = res.body;
+    expect(data.token).toBeDefined();
+    expect(data.role).toBe('admin');
+    expect(data.name).toBe('Admin User');
+    expect(data.expiresIn).toBe(config.JWT_EXPIRES_IN || 3600);
+  });
+
+  it('signs JWT with sub (userId), role, and expiration matching JWT_EXPIRES_IN', async () => {
+    const res = await request(app)
+      .post('/api/login')
+      .send({ email: validPayload().email, password: validPayload().password });
+
+    expect(res.status).toBe(200);
+    const { token } = res.body.data;
+
+    const decoded = jwt.verify(token, config.JWT_SECRET);
+    expect(decoded.sub).toBeDefined();
+    expect(decoded.role).toBe('student');
+    expect(decoded.exp).toBeGreaterThan(Math.floor(Date.now() / 1000));
   });
 
   it('returns 401 INVALID_CREDENTIALS for wrong password', async () => {
@@ -228,7 +267,9 @@ describe('POST /api/login — authentication', () => {
       .send({ email: validPayload().email, password: 'wrongpassword' });
 
     expect(res.status).toBe(401);
+    expect(res.body.success).toBe(false);
     expect(res.body.error.code).toBe('INVALID_CREDENTIALS');
+    expect(res.body.error.message).toBe('Invalid email or password.');
   });
 
   it('returns 401 INVALID_CREDENTIALS for unknown email', async () => {
@@ -237,10 +278,12 @@ describe('POST /api/login — authentication', () => {
       .send({ email: 'nobody@example.com', password: validPayload().password });
 
     expect(res.status).toBe(401);
+    expect(res.body.success).toBe(false);
     expect(res.body.error.code).toBe('INVALID_CREDENTIALS');
+    expect(res.body.error.message).toBe('Invalid email or password.');
   });
 
-  it('returns the same error for wrong password and unknown email (no enumeration)', async () => {
+  it('returns identical 401 response for wrong password and unknown email to prevent enumeration (SR-01)', async () => {
     const wrongPass = await request(app)
       .post('/api/login')
       .send({ email: validPayload().email, password: 'wrongpassword' });
@@ -254,9 +297,31 @@ describe('POST /api/login — authentication', () => {
     expect(wrongPass.body.error.message).toBe(wrongEmail.body.error.message);
   });
 
-  it('returns 400 VALIDATION_ERROR when login body is missing fields', async () => {
+  it('returns 400 VALIDATION_ERROR when email or password is missing', async () => {
     const res = await request(app).post('/api/login').send({});
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    expect(res.body.error.details.some((d) => d.field === 'email')).toBe(true);
+    expect(res.body.error.details.some((d) => d.field === 'password')).toBe(true);
+  });
+
+  it('returns 400 VALIDATION_ERROR when email format is invalid', async () => {
+    const res = await request(app)
+      .post('/api/login')
+      .send({ email: 'not-an-email', password: 'Password123' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    expect(res.body.error.details.some((d) => d.field === 'email')).toBe(true);
+  });
+
+  it('returns 400 VALIDATION_ERROR when unknown fields are provided (strict schema)', async () => {
+    const res = await request(app)
+      .post('/api/login')
+      .send({ email: validPayload().email, password: validPayload().password, extraField: 'hack' });
+
     expect(res.status).toBe(400);
     expect(res.body.error.code).toBe('VALIDATION_ERROR');
   });
 });
+
