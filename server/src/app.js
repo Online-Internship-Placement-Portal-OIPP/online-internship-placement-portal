@@ -32,7 +32,11 @@ app.get('/api/health', (req, res) => {
 
 // --- Feature routes ---
 const apiRouter = express.Router();
-// Module routes will be mounted on apiRouter here.
+
+// M1 — Authentication (FR-01, FR-02)
+const authRoutes = require('./modules/auth/auth.routes');
+apiRouter.use('/', authRoutes);
+
 app.use('/api', apiRouter);
 
 // --- 404 catch-all ---
