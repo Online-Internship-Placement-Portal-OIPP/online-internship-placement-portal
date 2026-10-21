@@ -12,6 +12,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { User } = require('../../models');
+const config = require('../../config/env');
 const AppError = require('../../utils/AppError');
 const logger = require('../../utils/logger');
 
@@ -70,10 +71,10 @@ async function login({ email, password }) {
     throw new AppError('INVALID_CREDENTIALS');
   }
 
-  const expiresIn = Number(process.env.JWT_EXPIRES_IN) || 3600;
+  const expiresIn = config.JWT_EXPIRES_IN || 3600;
   const token = jwt.sign(
     { sub: user.id, role: user.role },
-    process.env.JWT_SECRET,
+    config.JWT_SECRET,
     { expiresIn }
   );
 
