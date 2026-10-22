@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useLocation } from 'react-router-dom';
 import internshipsApi from '../api/internshipsApi';
 import Loader from '../components/Loader';
 import Alert from '../components/Alert';
@@ -24,6 +24,7 @@ export const formatDate = (dateValue) => {
 
 export const InternshipsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
 
   const querySearch = searchParams.get('search') || '';
   const queryCategory = searchParams.get('category') || '';
@@ -286,6 +287,7 @@ export const InternshipsPage = () => {
                 <div className="internship-card-actions">
                   <Link
                     to={`/internships/${internship.id}`}
+                    state={{ from: `${location.pathname}${location.search}` }}
                     className="btn btn-primary"
                     aria-label={`View details for ${internship.title} at ${internship.company}`}
                   >
