@@ -37,6 +37,9 @@ const apiRouter = express.Router();
 const authRoutes = require('./modules/auth/auth.routes');
 apiRouter.use('/', authRoutes);
 
+// M2 — Internship Management (FR-03, FR-04)
+apiRouter.use('/internships', require('./modules/internships/internships.routes'));
+
 app.use('/api', apiRouter);
 
 // --- 404 catch-all ---
