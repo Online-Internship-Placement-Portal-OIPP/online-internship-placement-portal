@@ -1,8 +1,10 @@
 /**
  * Zod validation schemas for Internship module (M2).
  * FR-03, FR-04: Listing, searching, and filtering internships.
+ * FR-05: View internship details by ID.
  */
 const { z } = require('zod');
+const { objectIdSchema } = require('../../utils/objectId');
 
 const listInternshipsQuerySchema = z
   .object({
@@ -23,7 +25,15 @@ const listInternshipsQuerySchema = z
   })
   .strict();
 
+const internshipParamsSchema = z
+  .object({
+    id: objectIdSchema,
+  })
+  .strict();
+
 module.exports = {
   listInternshipsQuerySchema,
   listQuerySchema: listInternshipsQuerySchema,
+  internshipParamsSchema,
+  getInternshipParamsSchema: internshipParamsSchema,
 };

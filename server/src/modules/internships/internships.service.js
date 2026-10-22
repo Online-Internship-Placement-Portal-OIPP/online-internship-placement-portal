@@ -2,9 +2,11 @@
  * Internships Service (M2) — Read operations.
  *
  * FR-03, FR-04: Listing, searching, and filtering internships.
+ * FR-05: View internship details by ID.
  * Write operations belong to M7 / S1-07 (internships.admin.service.js).
  */
-const { Internship } = require('../../models');
+const { Internship, Application } = require('../../models');
+const AppError = require('../../utils/AppError');
 const escapeRegex = require('../../utils/escapeRegex');
 
 /**
@@ -100,7 +102,61 @@ async function getMeta(role = 'student') {
   };
 }
 
+/**
+ * Get a single internship by its ID.
+ *
+ * FR-05 / SR-04 / SR-05:
+ * - Unknown internship → 404 INTERNSHIP_NOT_FOUND
+ * - Students requesting a closed internship → 404 INTERNSHIP_NOT_FOUND
+ * - Admins can view both open and closed internships
+ * - Students receive `hasApplied: true|false` based on existing applications
+ * - Admins receive `hasApplied: false`
+ * - Both receive `deadlinePassed: true|false` based on whether the deadline has elapsed
+ *
+ * @param {string} id - Internship ObjectId
+ * @param {{ id?: string, role?: string }} user - Verified JWT user (req.user)
+ * @returns {Promise<{ id: string, title: string, company: string, location: string, category: string, description: string, deadline: Date, status: string, hasApplied: boolean, deadlinePassed: boolean }>}
+ */
+async function getInternship(id, user) {
+  const doc = await Internship.findById(id).lean();
+  if (!doc) {
+    throw new AppError('INTERNSHIP_NOT_FOUND');
+  }
+
+  const isStudent = user?.role !== 'admin';
+
+  // Students requesting a closed internship get 404 INTERNSHIP_NOT_FOUND
+  if (isStudent && doc.status === 'closed') {
+    throw new AppError('INTERNSHIP_NOT_FOUND');
+  }
+
+  let hasApplied = false;
+  if (isStudent && user?.id) {
+    const existing = await Application.exists({
+      studentId: user.id,
+      internshipId: doc._id,
+    });
+    hasApplied = Boolean(existing);
+  }
+
+  const deadlinePassed = doc.deadline ? new Date(doc.deadline).getTime() < Date.now() : false;
+
+  return {
+    id: doc._id.toString(),
+    title: doc.title,
+    company: doc.company,
+    location: doc.location,
+    category: doc.category,
+    description: doc.description,
+    deadline: doc.deadline,
+    status: doc.status,
+    hasApplied,
+    deadlinePassed,
+  };
+}
+
 module.exports = {
   listInternships,
   getMeta,
+  getInternship,
 };
