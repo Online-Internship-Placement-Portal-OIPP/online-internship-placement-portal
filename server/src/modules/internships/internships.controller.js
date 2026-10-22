@@ -24,7 +24,17 @@ const getMetaHandler = asyncHandler(async (req, res) => {
   return ok(res, data);
 });
 
+/**
+ * GET /api/internships/:id
+ * FR-05: View internship details.
+ */
+const getInternshipHandler = asyncHandler(async (req, res) => {
+  const data = await internshipsService.getInternship(req.params.id, req.user);
+  return ok(res, data);
+});
+
 module.exports = {
   listInternshipsHandler,
   getMetaHandler,
+  getInternshipHandler,
 };
