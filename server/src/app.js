@@ -40,6 +40,9 @@ apiRouter.use('/', authRoutes);
 // M2 — Internship Management (FR-03, FR-04)
 apiRouter.use('/internships', require('./modules/internships/internships.routes'));
 
+// M3 — Application Management (FR-06, FR-07, FR-12, NFR-04)
+apiRouter.use('/applications', require('./modules/applications/applications.routes'));
+
 app.use('/api', apiRouter);
 
 // --- 404 catch-all ---
