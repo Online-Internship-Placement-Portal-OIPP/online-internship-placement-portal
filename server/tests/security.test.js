@@ -154,3 +154,67 @@ describe('TC-SEC-05 - Server-side API security', () => {
       .not.toContain('passwordHash');
   });
 });
+
+describe('TC-SEC-01 and TC-SEC-02 - Application API security', () => {
+  const applicationRoutes = [
+    ['GET', '/api/applications'],
+    ['POST', '/api/applications'],
+  ];
+
+  test.each(applicationRoutes)(
+    '%s %s rejects requests without a token',
+    async (method, path) => {
+      const response = await request(app)[method.toLowerCase()](path);
+      expectSafeError(response, 401, 'UNAUTHORIZED');
+    }
+  );
+
+  test.each(applicationRoutes)(
+    '%s %s rejects tampered tokens',
+    async (method, path) => {
+      const student = await createStudent();
+      const token = authHeader(student).Authorization.slice(7);
+      const parts = token.split('.');
+
+      parts[2] =
+        (parts[2][0] === 'a' ? 'b' : 'a') +
+        parts[2].slice(1);
+
+      const response = await request(app)[method.toLowerCase()](path)
+        .set('Authorization', `Bearer ${parts.join('.')}`);
+
+      expectSafeError(response, 401, 'UNAUTHORIZED');
+    }
+  );
+
+  test.each(applicationRoutes)(
+    '%s %s rejects expired tokens',
+    async (method, path) => {
+      const student = await createStudent();
+
+      const expiredToken = jwt.sign(
+        { sub: String(student._id), role: 'student' },
+        process.env.JWT_SECRET,
+        { expiresIn: -10 }
+      );
+
+      const response = await request(app)[method.toLowerCase()](path)
+        .set('Authorization', `Bearer ${expiredToken}`);
+
+      expectSafeError(response, 401, 'UNAUTHORIZED');
+    }
+  );
+
+  test.each(applicationRoutes)(
+    '%s %s rejects admin users',
+    async (method, path) => {
+      const { createAdmin } = require('./helpers');
+      const admin = await createAdmin();
+
+      const response = await request(app)[method.toLowerCase()](path)
+        .set(authHeader(admin));
+
+      expectSafeError(response, 403, 'FORBIDDEN');
+    }
+  );
+});
