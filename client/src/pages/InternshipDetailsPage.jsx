@@ -4,6 +4,7 @@ import internshipsApi from '../api/internshipsApi';
 import Loader from '../components/Loader';
 import Alert from '../components/Alert';
 import EmptyState from '../components/EmptyState';
+import ApplyButton from '../components/ApplyButton';
 import './InternshipDetailsPage.css';
 
 /**
@@ -178,7 +179,9 @@ export const InternshipDetailsPage = () => {
           </div>
         </section>
 
-        <div className="apply-slot" data-testid="apply-slot">{/* S1-05: <ApplyButton internship={internship} onApplied={reload} /> */}</div>
+        <div className="apply-slot" data-testid="apply-slot">
+          <ApplyButton internship={internship} onApplied={reload} />
+        </div>
       </article>
     </div>
   );
