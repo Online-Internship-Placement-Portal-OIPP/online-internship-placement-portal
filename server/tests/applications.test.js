@@ -119,10 +119,12 @@ describe('TC-APP-02 view own applications', () => {
     const otherStudent = await createStudent();
     const first = await createInternship({ title: 'First Internship' });
     const second = await createInternship({ title: 'Second Internship' });
+    const olderApplicationDate = new Date('2026-10-20T10:00:00.000Z');
+    const newerApplicationDate = new Date('2026-10-21T10:00:00.000Z');
     await Application.create([
-      { studentId: student._id, internshipId: first._id },
-      { studentId: student._id, internshipId: second._id },
-      { studentId: otherStudent._id, internshipId: first._id },
+      { studentId: student._id, internshipId: first._id, appliedAt: olderApplicationDate },
+      { studentId: student._id, internshipId: second._id, appliedAt: newerApplicationDate },
+      { studentId: otherStudent._id, internshipId: first._id, appliedAt: olderApplicationDate },
     ]);
     await Internship.deleteOne({ _id: first._id });
 

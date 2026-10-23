@@ -48,7 +48,7 @@ async function submitApplication(studentId, internshipId) {
 
 async function listApplications(studentId) {
   const applications = await Application.find({ studentId })
-    .sort({ createdAt: -1 })
+    .sort({ appliedAt: -1, createdAt: -1, _id: -1 })
     .lean();
 
   const internshipIds = applications.map((application) => application.internshipId);
