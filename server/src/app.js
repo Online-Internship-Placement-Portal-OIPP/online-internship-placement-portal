@@ -39,8 +39,15 @@ apiRouter.use('/', authRoutes);
 
 // M2 — Internship Management (FR-03, FR-04)
 apiRouter.use('/internships', require('./modules/internships/internships.routes'));
-
+// S1-07 — Admin Internship Management
+apiRouter.use('/admin/internships', require('./modules/internships/adminInternships.routes'));
 app.use('/api', apiRouter);
+
+// S1-07 — Admin Internship Management
+apiRouter.use(
+  '/admin/internships',
+  require('./modules/internships/adminInternships.routes')
+);
 
 // --- 404 catch-all ---
 app.use(notFound);
