@@ -218,3 +218,51 @@ describe('TC-SEC-01 and TC-SEC-02 - Application API security', () => {
     }
   );
 });
+
+describe('TC-SEC-02 - Admin internship API security', () => {
+  const adminRoutes = [
+    ['POST', '/api/admin/internships'],
+    ['PUT', '/api/admin/internships/507f1f77bcf86cd799439011'],
+    ['DELETE', '/api/admin/internships/507f1f77bcf86cd799439011'],
+  ];
+
+  test.each(adminRoutes)(
+    '%s %s rejects unauthenticated requests',
+    async (method, path) => {
+      const response = await request(app)[method.toLowerCase()](path);
+
+      expectSafeError(response, 401, 'UNAUTHORIZED');
+    }
+  );
+
+  test.each(adminRoutes)(
+    '%s %s rejects student users',
+    async (method, path) => {
+      const student = await createStudent();
+
+      const response = await request(app)[method.toLowerCase()](path)
+        .set(authHeader(student));
+
+      expectSafeError(response, 403, 'FORBIDDEN_ADMIN_ONLY');
+    }
+  );
+
+  test.each(adminRoutes)(
+    '%s %s rejects expired tokens',
+    async (method, path) => {
+      const student = await createStudent();
+
+      const expiredToken = jwt.sign(
+        { sub: String(student._id), role: 'student' },
+        process.env.JWT_SECRET,
+        { expiresIn: -10 }
+      );
+
+      const response = await request(app)[method.toLowerCase()](path)
+        .set('Authorization', `Bearer ${expiredToken}`);
+
+      expectSafeError(response, 401, 'UNAUTHORIZED');
+    }
+  );
+});
+
