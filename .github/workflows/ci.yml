@@ -50,7 +50,6 @@ jobs:
         working-directory: ./server
         env:
           NODE_ENV: test
-          MONGODB_URI_TEST: mongodb://localhost:27017
           JWT_SECRET: ci-secret
         run: npm test
 
