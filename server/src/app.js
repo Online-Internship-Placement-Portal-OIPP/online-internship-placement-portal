@@ -1,5 +1,4 @@
-
-/**
+﻿/**
  * Express application setup.
  * Builds the app with middleware, routes and error handling.
  * Exported for use by server.js and tests (no listen call here).
@@ -16,39 +15,40 @@ const { applySecurity } = require('./middleware/security');
 
 const app = express();
 
-
- // SECURITY MIDDLEWARE (S0-04)
+// SECURITY MIDDLEWARE (S0-04)
 app.use(requestLogger);
 applySecurity(app);
 
-// --- Body parser ---
+// Body parser
 app.use(express.json({ limit: '100kb' }));
 
-
-// --- Health check ---
+// Health check
 app.get('/api/health', (req, res) => {
   ok(res, { status: 'ok', db: isDbUp() ? 'up' : 'down' });
 });
 
-// --- Feature routes ---
+// Feature routes
 const apiRouter = express.Router();
 
-// M1 — Authentication (FR-01, FR-02)
+// M1 - Authentication (FR-01, FR-02)
 const authRoutes = require('./modules/auth/auth.routes');
 apiRouter.use('/', authRoutes);
 
-// M2 — Internship Management (FR-03, FR-04)
+// M2 - Internship Management (FR-03, FR-04)
 apiRouter.use('/internships', require('./modules/internships/internships.routes'));
 
-// M3 — Application Management (FR-06, FR-07, FR-12, NFR-04)
+// S1-07 - Admin Internship Management
+apiRouter.use('/admin/internships', require('./modules/internships/adminInternships.routes'));
+
+// M3 - Application Management (FR-06, FR-07, FR-12, NFR-04)
 apiRouter.use('/applications', require('./modules/applications/applications.routes'));
 
 app.use('/api', apiRouter);
 
-// --- 404 catch-all ---
+// 404 catch-all
 app.use(notFound);
 
-// --- Central error handler ---
+// Central error handler
 app.use(errorHandler);
 
 module.exports = app;
