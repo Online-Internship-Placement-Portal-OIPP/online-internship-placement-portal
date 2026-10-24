@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { MongoMemoryServer } = require('mongodb-memory-server');
+const { MongoMemoryReplSet } = require('mongodb-memory-server');
 
 // Ensure all models are registered on mongoose.models
 require('../src/models');
@@ -15,7 +15,9 @@ beforeAll(async () => {
     const dbName = `test_${Date.now()}_${Math.random().toString(36).substring(7)}`;
     uri = `${process.env.MONGODB_URI_TEST}/${dbName}`;
   } else {
-    mongoServer = await MongoMemoryServer.create();
+  mongoServer = await MongoMemoryReplSet.create({
+  replSet: { count: 1 },
+});
     uri = mongoServer.getUri();
   }
 

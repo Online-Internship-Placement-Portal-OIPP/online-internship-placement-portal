@@ -15,7 +15,7 @@ const {
 
 require('./setup');
 
-describe('S1-07 Admin Internship Management', () => {
+describe('TC-ADM-01 Admin Internship Management', () => {
   let adminHeader;
   let studentHeader;
 
@@ -78,6 +78,48 @@ describe('S1-07 Admin Internship Management', () => {
     const deleted = await Internship.findById(internship._id);
     expect(deleted).toBeNull();
   });
+  test('deleting an internship also deletes its applications', async () => {
+  const { Application } = require('../src/models');
+
+  const internship = await createInternship();
+  const otherInternship = await createInternship();
+
+  const student = await createStudent();
+
+  await Application.create([
+    {
+      studentId: student._id,
+      internshipId: internship._id,
+    },
+    {
+      studentId: student._id,
+      internshipId: otherInternship._id,
+    },
+  ]);
+
+  const res = await request(app)
+    .delete(`/api/admin/internships/${internship._id}`)
+    .set(adminHeader);
+
+  expect(res.status).toBe(200);
+  expect(res.body.data).toEqual({
+    deleted: true,
+    id: String(internship._id),
+  });
+
+  const deletedInternship = await Internship.findById(internship._id);
+  expect(deletedInternship).toBeNull();
+
+  const deletedApplications = await Application.countDocuments({
+    internshipId: internship._id,
+  });
+  expect(deletedApplications).toBe(0);
+
+  const unrelatedApplications = await Application.countDocuments({
+    internshipId: otherInternship._id,
+  });
+  expect(unrelatedApplications).toBe(1);
+});
 
   test('student cannot create an internship', async () => {
     const res = await request(app)
@@ -128,6 +170,23 @@ describe('S1-07 Admin Internship Management', () => {
 
     expect(res.status).toBe(400);
   });
+  test('admin cannot create an internship with a past deadline', async () => {
+  const res = await request(app)
+    .post('/api/admin/internships')
+    .set(adminHeader)
+    .send({
+      ...validInternship,
+      deadline: '2020-01-01',
+    });
+
+  expect(res.status).toBe(400);
+
+  const saved = await Internship.findOne({
+    title: validInternship.title,
+  });
+
+  expect(saved).toBeNull();
+});
 
   test('malformed internship ID is rejected', async () => {
     const res = await request(app)
@@ -145,4 +204,130 @@ describe('S1-07 Admin Internship Management', () => {
 
     expect(res.status).toBe(404);
   });
+  test('deleting a nonexistent internship returns INTERNSHIP_NOT_FOUND', async () => {
+  const res = await request(app)
+    .delete('/api/admin/internships/507f1f77bcf86cd799439011')
+    .set(adminHeader);
+
+  expect(res.status).toBe(404);
+  expect(res.body.error.code).toBe('INTERNSHIP_NOT_FOUND');
+});
+test('failed internship deletion rolls back application deletion', async () => {
+  const { Application } = require('../src/models');
+
+  const internship = await createInternship();
+  const student = await createStudent();
+
+  await Application.create({
+    studentId: student._id,
+    internshipId: internship._id,
+  });
+
+  const deleteSpy = jest
+    .spyOn(Internship, 'findByIdAndDelete')
+    .mockImplementationOnce(() => {
+      throw new Error('Simulated database failure');
+    });
+
+  try {
+    const res = await request(app)
+      .delete(`/api/admin/internships/${internship._id}`)
+      .set(adminHeader);
+
+    expect(res.status).toBe(500);
+
+    const savedInternship = await Internship.findById(internship._id);
+    expect(savedInternship).not.toBeNull();
+
+    const applicationCount = await Application.countDocuments({
+      internshipId: internship._id,
+    });
+
+    expect(applicationCount).toBe(1);
+  } finally {
+    deleteSpy.mockRestore();
+  }
+});
+test('admin creation logs the admin ID and internship ID', async () => {
+  const logger = require('../src/utils/logger');
+
+  const admin = await createAdmin();
+  const header = authHeader(admin);
+
+  const logSpy = jest.spyOn(logger, 'info').mockImplementation(() => {});
+
+  try {
+    const res = await request(app)
+      .post('/api/admin/internships')
+      .set(header)
+      .send(validInternship);
+
+    expect(res.status).toBe(201);
+
+    expect(logSpy).toHaveBeenCalledWith(
+      'Admin internship created',
+      expect.objectContaining({
+        adminId: String(admin._id),
+        internshipId: res.body.data.id,
+      })
+    );
+  } finally {
+    logSpy.mockRestore();
+  }
+});
+test('admin update logs the admin ID and internship ID', async () => {
+  const logger = require('../src/utils/logger');
+
+  const internship = await createInternship();
+  const admin = await createAdmin();
+  const header = authHeader(admin);
+
+  const logSpy = jest.spyOn(logger, 'info').mockImplementation(() => {});
+
+  try {
+    const res = await request(app)
+      .put(`/api/admin/internships/${internship._id}`)
+      .set(header)
+      .send({ title: 'Updated Internship Title' });
+
+    expect(res.status).toBe(200);
+
+    expect(logSpy).toHaveBeenCalledWith(
+      'Admin internship updated',
+      expect.objectContaining({
+        adminId: String(admin._id),
+        internshipId: String(internship._id),
+      })
+    );
+  } finally {
+    logSpy.mockRestore();
+  }
+});
+test('admin deletion logs the admin ID and internship ID', async () => {
+  const logger = require('../src/utils/logger');
+
+  const internship = await createInternship();
+  const admin = await createAdmin();
+  const header = authHeader(admin);
+
+  const logSpy = jest.spyOn(logger, 'info').mockImplementation(() => {});
+
+  try {
+    const res = await request(app)
+      .delete(`/api/admin/internships/${internship._id}`)
+      .set(header);
+
+    expect(res.status).toBe(200);
+
+    expect(logSpy).toHaveBeenCalledWith(
+      'Admin internship deleted',
+      expect.objectContaining({
+        adminId: String(admin._id),
+        internshipId: String(internship._id),
+      })
+    );
+  } finally {
+    logSpy.mockRestore();
+  }
+});
 });

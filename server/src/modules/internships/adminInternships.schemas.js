@@ -9,7 +9,17 @@ const createInternshipSchema = z.object({
   location: z.string().trim().min(1),
   category: z.string().trim().min(1),
   description: z.string().trim().min(10).max(5000),
-  deadline: z.coerce.date(),
+  deadline: z.coerce.date().refine(
+  (date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return date >= today;
+  },
+  {
+    message: 'Deadline must be today or later.',
+  }
+),
   status: z.enum(['open', 'closed']).default('open'),
 }).strict();
 

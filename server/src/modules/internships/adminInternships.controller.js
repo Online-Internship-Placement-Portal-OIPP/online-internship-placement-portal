@@ -1,4 +1,3 @@
-
 /**
  * S1-07: Admin Internship Management Controller.
  *
@@ -16,7 +15,8 @@ const adminInternshipsService = require('./adminInternships.service');
  */
 const createInternshipHandler = asyncHandler(async (req, res) => {
   const internship = await adminInternshipsService.createInternship(
-    req.body
+    req.body,
+    req.user.id
   );
 
   return ok(res, internship, 201);
@@ -29,7 +29,8 @@ const createInternshipHandler = asyncHandler(async (req, res) => {
 const updateInternshipHandler = asyncHandler(async (req, res) => {
   const internship = await adminInternshipsService.updateInternship(
     req.params.id,
-    req.body
+    req.body,
+    req.user.id
   );
 
   return ok(res, internship);
@@ -40,10 +41,14 @@ const updateInternshipHandler = asyncHandler(async (req, res) => {
  * Delete an existing internship listing.
  */
 const deleteInternshipHandler = asyncHandler(async (req, res) => {
-  await adminInternshipsService.deleteInternship(req.params.id);
+  await adminInternshipsService.deleteInternship(
+    req.params.id,
+    req.user.id
+  );
 
   return ok(res, {
-    message: 'Internship deleted successfully',
+    deleted: true,
+    id: req.params.id,
   });
 });
 
