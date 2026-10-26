@@ -18,9 +18,9 @@ const emptyForm = {
 };
 
 const getErrorMessage = (error) =>
-  error.response?.data?.error?.message ||
-  error.response?.data?.message ||
-  error.message ||
+  error?.response?.data?.error?.message ||
+  error?.response?.data?.message ||
+  error?.message ||
   'Something went wrong. Please try again.';
 
 export const ManageInternshipsPage = () => {
@@ -147,8 +147,13 @@ export const ManageInternshipsPage = () => {
         message: 'Internship deleted successfully.',
       });
 
-      await loadInternships();
+      if (internships.length === 1 && page > 1) {
+        setPage((previous) => previous - 1);
+      } else {
+        await loadInternships();
+      }
     } catch (error) {
+      setDeleteTarget(null);
       setAlert({ type: 'error', message: getErrorMessage(error) });
     } finally {
       setDeleting(false);

@@ -45,43 +45,87 @@ async function updateInternship(id, data, adminId) {
 }
 
 /**
+ * Check whether the active MongoDB deployment supports multi-document transactions.
+ * Transactions require a replica set or sharded cluster.
+ */
+function supportsTransactions() {
+  const topology = mongoose.connection?.client?.topology?.description;
+  if (!topology) return false;
+  return Boolean(topology.setName) || topology.type === 'ReplicaSetWithPrimary' || topology.type === 'Sharded';
+}
+
+/**
+ * Check whether a database error indicates that transactions are unsupported.
+ */
+function isTransactionUnsupportedError(error) {
+  if (!error) return false;
+  const message = error.message || '';
+  return (
+    error.name === 'MongoServerError' &&
+    (error.code === 20 ||
+      error.codeName === 'IllegalOperation' ||
+      /transaction numbers are only allowed on a replica set member or mongos/i.test(message) ||
+      /does not support .*transactions/i.test(message))
+  );
+}
+
+/**
+ * Cascade-delete an internship and its associated applications.
+ */
+async function executeCascadeDelete(id, session = null) {
+  const options = session ? { session } : {};
+
+  const internship = await Internship.findById(id).session(session || null);
+  if (!internship) {
+    throw new AppError('INTERNSHIP_NOT_FOUND');
+  }
+
+  await Application.deleteMany({ internshipId: id }, options);
+  await Internship.findByIdAndDelete(id, options);
+}
+
+/**
  * Delete an internship and its associated applications.
  *
- * Both operations run inside a MongoDB transaction.
- * If either operation fails, the transaction is rolled back.
+ * If transactions are supported by the database deployment (replica set or mongos),
+ * both operations run atomically inside a MongoDB transaction.
+ * If transactions are unsupported (e.g. standalone local Community Server),
+ * cascade deletion runs sequentially.
  */
 async function deleteInternship(id, adminId) {
-  const session = await mongoose.startSession();
-
-  try {
-    await session.withTransaction(async () => {
-      const internship = await Internship.findById(id).session(session);
-
-      if (!internship) {
-        throw new AppError('INTERNSHIP_NOT_FOUND');
+  if (supportsTransactions()) {
+    let session;
+    try {
+      session = await mongoose.startSession();
+      await session.withTransaction(async () => {
+        await executeCascadeDelete(id, session);
+      });
+    } catch (error) {
+      if (isTransactionUnsupportedError(error)) {
+        await executeCascadeDelete(id);
+      } else {
+        throw error;
       }
-
-      await Application.deleteMany(
-        { internshipId: id },
-        { session }
-      );
-
-      await Internship.findByIdAndDelete(id, { session });
-    });
-
-    logger.info('Admin internship deleted', {
-      adminId,
-      internshipId: String(id),
-    });
-
-    return { deleted: true, id };
-  } finally {
-    await session.endSession();
+    } finally {
+      if (session) {
+        await session.endSession();
+      }
+    }
+  } else {
+    await executeCascadeDelete(id);
   }
+
+  logger.info('Admin internship deleted', {
+    adminId,
+    internshipId: String(id),
+  });
+
+  return { deleted: true, id };
 }
 
 module.exports = {
   createInternship,
   updateInternship,
   deleteInternship,
+  supportsTransactions,
 };

@@ -330,4 +330,94 @@ test('admin deletion logs the admin ID and internship ID', async () => {
     logSpy.mockRestore();
   }
 });
+
+test('admin deletion falls back safely when transactions are unsupported', async () => {
+  const { Application } = require('../src/models');
+  const adminService = require('../src/modules/internships/adminInternships.service');
+
+  const internship = await createInternship();
+  const otherInternship = await createInternship();
+  const student = await createStudent();
+
+  await Application.create([
+    { studentId: student._id, internshipId: internship._id },
+    { studentId: student._id, internshipId: otherInternship._id },
+  ]);
+
+  // Simulate environment where multi-document transactions are unsupported
+  const supportsSpy = jest
+    .spyOn(adminService, 'supportsTransactions')
+    .mockReturnValue(false);
+
+  try {
+    const res = await request(app)
+      .delete(`/api/admin/internships/${internship._id}`)
+      .set(adminHeader);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data).toEqual({
+      deleted: true,
+      id: String(internship._id),
+    });
+
+    const deletedInternship = await Internship.findById(internship._id);
+    expect(deletedInternship).toBeNull();
+
+    const deletedApplications = await Application.countDocuments({
+      internshipId: internship._id,
+    });
+    expect(deletedApplications).toBe(0);
+
+    const unrelatedApplications = await Application.countDocuments({
+      internshipId: otherInternship._id,
+    });
+    expect(unrelatedApplications).toBe(1);
+  } finally {
+    supportsSpy.mockRestore();
+  }
+});
+
+test('admin deletion falls back if transaction throws unsupported error', async () => {
+  const { Application } = require('../src/models');
+  const mongoose = require('mongoose');
+
+  const internship = await createInternship();
+  const student = await createStudent();
+
+  await Application.create({
+    studentId: student._id,
+    internshipId: internship._id,
+  });
+
+  const session = await mongoose.startSession();
+  const sessionSpy = jest.spyOn(mongoose, 'startSession').mockImplementation(async () => {
+    const originalWithTx = session.withTransaction.bind(session);
+    jest.spyOn(session, 'withTransaction').mockImplementationOnce(async () => {
+      const unsupportedErr = new Error('Transaction numbers are only allowed on a replica set member or mongos');
+      unsupportedErr.name = 'MongoServerError';
+      unsupportedErr.code = 20;
+      unsupportedErr.codeName = 'IllegalOperation';
+      throw unsupportedErr;
+    });
+    return session;
+  });
+
+  try {
+    const res = await request(app)
+      .delete(`/api/admin/internships/${internship._id}`)
+      .set(adminHeader);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.deleted).toBe(true);
+
+    const deletedInternship = await Internship.findById(internship._id);
+    expect(deletedInternship).toBeNull();
+
+    const appCount = await Application.countDocuments({ internshipId: internship._id });
+    expect(appCount).toBe(0);
+  } finally {
+    sessionSpy.mockRestore();
+    await session.endSession();
+  }
+});
 });
