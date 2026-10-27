@@ -43,6 +43,9 @@ apiRouter.use('/admin/internships', require('./modules/internships/adminInternsh
 // M3 - Application Management (FR-06, FR-07, FR-12, NFR-04)
 apiRouter.use('/applications', require('./modules/applications/applications.routes'));
 
+// M4 - Aptitude Test Management (FR-08, FR-09)
+apiRouter.use('/tests', require('./modules/aptitude/aptitude.routes'));
+
 app.use('/api', apiRouter);
 
 // 404 catch-all
