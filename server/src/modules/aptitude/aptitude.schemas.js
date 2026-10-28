@@ -1,4 +1,4 @@
-const { z } = require('zod');
+const z = require('zod');
 const { objectIdSchema } = require('../../utils/objectId');
 
 const aptitudeParamsSchema = z

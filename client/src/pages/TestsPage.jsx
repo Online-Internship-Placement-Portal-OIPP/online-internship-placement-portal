@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import testsApi, { listTests } from '../api/testsApi';
+import testsApi from '../api/testsApi';
 import Loader from '../components/Loader';
 import Alert from '../components/Alert';
 import EmptyState from '../components/EmptyState';
@@ -17,7 +17,7 @@ export const TestsPage = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await (testsApi.listTests ? testsApi.listTests() : listTests());
+        const response = await testsApi.listTests();
         if (isMounted) {
           setTests(response.data || []);
         }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import testsApi, { getTest, submitTest } from '../api/testsApi';
+import testsApi from '../api/testsApi';
 import Loader from '../components/Loader';
 import Alert from '../components/Alert';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -39,7 +39,7 @@ export const TakeTestPage = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await (testsApi.getTest ? testsApi.getTest(id) : getTest(id));
+        const response = await testsApi.getTest(id);
         const data = response.data || response;
         if (isMounted) {
           setTest(data);
@@ -78,9 +78,7 @@ export const TakeTestPage = () => {
     );
 
     try {
-      const response = await (testsApi.submitTest
-        ? testsApi.submitTest(id, formattedAnswers)
-        : submitTest(id, formattedAnswers));
+      const response = await testsApi.submitTest(id, formattedAnswers);
 
       setIsSubmitted(true);
       const resultId =
