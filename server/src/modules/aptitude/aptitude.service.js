@@ -1,7 +1,9 @@
 const mongoose = require('mongoose');
 const { Test, Question, Result } = require('../../models');
 const AppError = require('../../utils/AppError');
-const { recordActivity } = require('../progress/activity.service');
+const logger = require('../../utils/logger');
+// Keep a reference to the module so tests can spy on its exports at runtime
+const activityService = require('../progress/activity.service');
 
 /**
  * List all available tests that contain at least one question.
@@ -159,9 +161,10 @@ async function evaluateSubmission(studentId, testId, answers) {
     }
     seenIds.add(qIdStr);
 
-    // selectedOption out of range
+    // selectedOption must be a non-negative integer within the options range
     const q = questionMap.get(qIdStr);
-    if (answer.selectedOption >= q.options.length) {
+    const opt = answer.selectedOption;
+    if (!Number.isInteger(opt) || opt < 0 || opt >= q.options.length) {
       throw new AppError('INVALID_SUBMISSION');
     }
   }
@@ -213,8 +216,16 @@ async function evaluateSubmission(studentId, testId, answers) {
     submittedAt: new Date(),
   });
 
-  // 8. Record activity (fire-and-forget failure is acceptable per SAD §4)
-  await recordActivity(studentId, 'TEST_COMPLETED', test._id);
+  // 8. Record activity — failure must not break a successful submit
+  try {
+    await activityService.recordActivity(studentId, 'TEST_COMPLETED', test._id);
+  } catch (activityError) {
+    logger.warn('Unable to record TEST_COMPLETED activity', {
+      studentId,
+      testId: test._id.toString(),
+      message: activityError.message,
+    });
+  }
 
   // 9. Return summary — correctOption never included
   return {
@@ -235,20 +246,29 @@ async function evaluateSubmission(studentId, testId, answers) {
  * @returns {Promise<Array<object>>}
  */
 async function listResults(studentId) {
+  // Use lean() but do NOT populate — we need the raw testId ObjectId to survive
+  // even when the test has been deleted (populate nulls the field when the ref is missing).
   const results = await Result.find({ studentId })
     .sort({ submittedAt: -1 })
-    .populate('testId', 'title')
     .lean();
 
-  return results.map((r) => ({
-    resultId: r._id.toString(),
-    testId: r.testId ? r.testId._id.toString() : null,
-    testTitle: r.testId ? r.testId.title : 'Test removed',
-    score: r.score,
-    totalMarks: r.totalMarks,
-    percentage: r.percentage,
-    submittedAt: r.submittedAt,
-  }));
+  // Collect unique testIds that still exist
+  const testIds = [...new Set(results.map((r) => r.testId.toString()))];
+  const tests = await Test.find({ _id: { $in: testIds } }, 'title').lean();
+  const testTitleMap = new Map(tests.map((t) => [t._id.toString(), t.title]));
+
+  return results.map((r) => {
+    const rawTestId = r.testId.toString();
+    return {
+      resultId: r._id.toString(),
+      testId: rawTestId,
+      testTitle: testTitleMap.get(rawTestId) || 'Test removed',
+      score: r.score,
+      totalMarks: r.totalMarks,
+      percentage: r.percentage,
+      submittedAt: r.submittedAt,
+    };
+  });
 }
 
 /**
@@ -261,18 +281,20 @@ async function listResults(studentId) {
  * @returns {Promise<object>}
  */
 async function getResult(studentId, resultId) {
-  const result = await Result.findOne({ _id: resultId, studentId })
-    .populate('testId', 'title')
-    .lean();
+  // Use lean() without populate to preserve the raw testId even after deletion
+  const result = await Result.findOne({ _id: resultId, studentId }).lean();
 
   if (!result) {
     throw new AppError('RESULT_NOT_FOUND');
   }
 
+  const rawTestId = result.testId.toString();
+  const test = await Test.findById(rawTestId, 'title').lean();
+
   return {
     resultId: result._id.toString(),
-    testId: result.testId ? result.testId._id.toString() : null,
-    testTitle: result.testId ? result.testId.title : 'Test removed',
+    testId: rawTestId,
+    testTitle: test ? test.title : 'Test removed',
     score: result.score,
     totalMarks: result.totalMarks,
     percentage: result.percentage,

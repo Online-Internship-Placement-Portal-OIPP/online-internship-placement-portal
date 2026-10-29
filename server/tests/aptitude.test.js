@@ -518,9 +518,10 @@ describe('TC-TEST-04 view result', () => {
     expect(res.body.error.code).toBe('INVALID_REQUEST');
   });
 
-  it("deleted test shows testTitle 'Test removed'", async () => {
+  it("deleted test shows testTitle 'Test removed' and preserves the original testId", async () => {
     const student = await createStudent();
     const { test, questions } = await setupScoringFixture2();
+    const originalTestId = test._id.toString();
 
     const submitRes = await request(app)
       .post(`/api/tests/${test._id}/submit`)
@@ -538,6 +539,8 @@ describe('TC-TEST-04 view result', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.data.testTitle).toBe('Test removed');
+    // testId must still equal the original test id
+    expect(res.body.data.testId).toBe(originalTestId);
 
     // Also check the list
     const listRes = await request(app)
@@ -546,6 +549,151 @@ describe('TC-TEST-04 view result', () => {
 
     const item = listRes.body.data.find((r) => r.resultId === resultId);
     expect(item.testTitle).toBe('Test removed');
+    expect(item.testId).toBe(originalTestId);
+  });
+});
+
+describe('TC-TEST-03 additional: invalid selectedOption values', () => {
+  it('selectedOption -1 returns 400 INVALID_SUBMISSION and writes no Result', async () => {
+    const student = await createStudent();
+    const { test, questions } = await createTestWithQuestions({
+      title: 'Negative Option Test',
+      category: 'Quantitative',
+      questions: [
+        { text: 'Is a negative option valid?', options: ['A', 'B'], correctOption: 0, category: 'Quantitative', marks: 1 },
+      ],
+    });
+    const countBefore = await Result.countDocuments();
+
+    const res = await request(app)
+      .post(`/api/tests/${test._id}/submit`)
+      .set(authHeader(student))
+      .send({ answers: [{ questionId: questions[0]._id.toString(), selectedOption: -1 }] });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('INVALID_SUBMISSION');
+    expect(await Result.countDocuments()).toBe(countBefore);
+  });
+
+  it('selectedOption 1.5 (non-integer) returns 400 INVALID_SUBMISSION and writes no Result', async () => {
+    const student = await createStudent();
+    const { test, questions } = await createTestWithQuestions({
+      title: 'Float Option Test',
+      category: 'Quantitative',
+      questions: [
+        { text: 'Is a float option valid?', options: ['A', 'B'], correctOption: 0, category: 'Quantitative', marks: 1 },
+      ],
+    });
+    const countBefore = await Result.countDocuments();
+
+    const res = await request(app)
+      .post(`/api/tests/${test._id}/submit`)
+      .set(authHeader(student))
+      .send({ answers: [{ questionId: questions[0]._id.toString(), selectedOption: 1.5 }] });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('INVALID_SUBMISSION');
+    expect(await Result.countDocuments()).toBe(countBefore);
+  });
+});
+
+describe('TC-TEST-03 additional: recordActivity failure does not break submit', () => {
+  it('returns 200 with resultId even when recordActivity rejects', async () => {
+    // Spy on the module-level export so aptitude.service.js (which calls
+    // activityService.recordActivity) picks up the mock without destructuring issues
+    const activityService = require('../src/modules/progress/activity.service');
+    const spy = jest.spyOn(activityService, 'recordActivity').mockRejectedValueOnce(
+      new Error('activity store unavailable')
+    );
+
+    const student = await createStudent();
+    const { test, questions } = await createTestWithQuestions({
+      title: 'Activity Failure Test',
+      category: 'Logical',
+      questions: [
+        { text: 'Does the submit survive?', options: ['Yes', 'No'], correctOption: 0, category: 'Logical', marks: 1 },
+      ],
+    });
+
+    const res = await request(app)
+      .post(`/api/tests/${test._id}/submit`)
+      .set(authHeader(student))
+      .send({ answers: [{ questionId: questions[0]._id.toString(), selectedOption: 0 }] });
+
+    // Must still succeed with 200
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.resultId).toBeTruthy();
+
+    // Result must have been saved
+    expect(await Result.countDocuments({ studentId: student._id })).toBe(1);
+
+    spy.mockRestore();
+  });
+});
+
+describe('TC-TEST-04 additional: auth guards for submit and results endpoints', () => {
+  let testFixture;
+
+  beforeAll(async () => {
+    testFixture = await createTestWithQuestions({
+      title: 'Auth Guard Fixture',
+      category: 'Logical',
+      questions: [
+        { text: 'Auth guard question text?', options: ['Yes', 'No'], correctOption: 0, category: 'Logical', marks: 1 },
+      ],
+    });
+  });
+
+  // POST /api/tests/:id/submit — auth guards
+  it('POST /submit with no token returns 401 UNAUTHORIZED', async () => {
+    const res = await request(app)
+      .post(`/api/tests/${testFixture.test._id}/submit`)
+      .send({ answers: [] });
+    expect(res.status).toBe(401);
+    expect(res.body.error.code).toBe('UNAUTHORIZED');
+  });
+
+  it('POST /submit with admin token returns 403 FORBIDDEN', async () => {
+    const admin = await createAdmin();
+    const res = await request(app)
+      .post(`/api/tests/${testFixture.test._id}/submit`)
+      .set(authHeader(admin))
+      .send({ answers: [] });
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('FORBIDDEN');
+  });
+
+  // GET /api/results — auth guards (no fixture needed)
+  it('GET /results with no token returns 401 UNAUTHORIZED', async () => {
+    const res = await request(app).get('/api/results');
+    expect(res.status).toBe(401);
+    expect(res.body.error.code).toBe('UNAUTHORIZED');
+  });
+
+  it('GET /results with admin token returns 403 FORBIDDEN', async () => {
+    const admin = await createAdmin();
+    const res = await request(app)
+      .get('/api/results')
+      .set(authHeader(admin));
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('FORBIDDEN');
+  });
+
+  // GET /api/results/:id — auth guards (no fixture needed)
+  it('GET /results/:id with no token returns 401 UNAUTHORIZED', async () => {
+    const res = await request(app).get('/api/results/507f1f77bcf86cd799439011');
+    expect(res.status).toBe(401);
+    expect(res.body.error.code).toBe('UNAUTHORIZED');
+  });
+
+  it('GET /results/:id with admin token returns 403 FORBIDDEN', async () => {
+    const admin = await createAdmin();
+    const res = await request(app)
+      .get('/api/results/507f1f77bcf86cd799439011')
+      .set(authHeader(admin));
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('FORBIDDEN');
   });
 });
 

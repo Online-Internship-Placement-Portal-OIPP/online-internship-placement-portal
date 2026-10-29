@@ -160,9 +160,12 @@ const ResultDetailPage = () => {
           marginTop: 'var(--space-4)',
         }}
       >
-        <Link to={`/tests/${data.testId}/attempt`} className="btn btn-primary">
-          Retake Test
-        </Link>
+        {/* Hide Retake when the test has been deleted */}
+        {data.testTitle !== 'Test removed' && (
+          <Link to={`/tests/${data.testId}/attempt`} className="btn btn-primary">
+            Retake Test
+          </Link>
+        )}
         <Link to="/analysis" className="btn btn-secondary">
           View Analysis
         </Link>

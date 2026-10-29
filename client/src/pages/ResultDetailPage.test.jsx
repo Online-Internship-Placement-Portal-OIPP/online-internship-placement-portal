@@ -110,4 +110,27 @@ describe('ResultDetailPage', () => {
       expect(screen.getByText('Result not found.')).toBeInTheDocument();
     });
   });
+
+  describe('deleted test hides Retake button', () => {
+    it('does not render the Retake Test link when testTitle is "Test removed"', async () => {
+      getResult.mockResolvedValue({
+        data: {
+          ...FIXTURE_RESULT,
+          testTitle: 'Test removed',
+        },
+      });
+
+      renderPage();
+
+      await waitFor(() => {
+        expect(screen.getByText('Test removed')).toBeInTheDocument();
+      });
+
+      // Retake Test link must NOT be present
+      expect(screen.queryByRole('link', { name: /Retake Test/i })).not.toBeInTheDocument();
+
+      // View Analysis link must still be present
+      expect(screen.getByRole('link', { name: /View Analysis/i })).toBeInTheDocument();
+    });
+  });
 });
