@@ -215,4 +215,154 @@ describe('TC-ADM-02 Admin Aptitude Management', () => {
 
     expect(res.status).toBe(400);
   });
+    test('student cannot view admin aptitude test details', async () => {
+    const { test } = await createTestWithQuestions();
+
+    const res = await request(app)
+      .get(`/api/admin/tests/${test._id}`)
+      .set(studentHeader);
+
+    expect(res.status).toBe(403);
+  });
+
+  test('student cannot update an aptitude test', async () => {
+    const { test } = await createTestWithQuestions();
+
+    const res = await request(app)
+      .put(`/api/admin/tests/${test._id}`)
+      .set(studentHeader)
+      .send({ title: 'Unauthorized Update' });
+
+    expect(res.status).toBe(403);
+  });
+
+  test('student cannot add a question', async () => {
+    const { test } = await createTestWithQuestions();
+
+    const res = await request(app)
+      .post(`/api/admin/tests/${test._id}/questions`)
+      .set(studentHeader)
+      .send({
+        text: 'Unauthorized question?',
+        options: ['A', 'B'],
+        correctOption: 0,
+        category: 'Quantitative',
+        marks: 1,
+      });
+
+    expect(res.status).toBe(403);
+  });
+
+  test('student cannot update an aptitude question', async () => {
+    const { questions } = await createTestWithQuestions();
+
+    const res = await request(app)
+      .put(`/api/admin/questions/${questions[0]._id}`)
+      .set(studentHeader)
+      .send({ text: 'Unauthorized Update' });
+
+    expect(res.status).toBe(403);
+  });
+
+  test('student cannot delete an aptitude question', async () => {
+    const { questions } = await createTestWithQuestions();
+
+    const res = await request(app)
+      .delete(`/api/admin/questions/${questions[0]._id}`)
+      .set(studentHeader);
+
+    expect(res.status).toBe(403);
+  });
+    test('returns 404 TEST_NOT_FOUND for a missing test', async () => {
+    const { test } = await createTestWithQuestions();
+    const { Test } = require('../src/models');
+
+    await Test.findByIdAndDelete(test._id);
+
+    const res = await request(app)
+      .get(`/api/admin/tests/${test._id}`)
+      .set(adminHeader);
+
+    expect(res.status).toBe(404);
+    expect(res.body.error.code).toBe('TEST_NOT_FOUND');
+  });
+
+  test('returns 404 QUESTION_NOT_FOUND for a missing question', async () => {
+    const { questions } = await createTestWithQuestions();
+    const { Question } = require('../src/models');
+
+    await Question.findByIdAndDelete(questions[0]._id);
+
+    const res = await request(app)
+      .put(`/api/admin/questions/${questions[0]._id}`)
+      .set(adminHeader)
+      .send({ text: 'Updated question' });
+
+    expect(res.status).toBe(404);
+    expect(res.body.error.code).toBe('QUESTION_NOT_FOUND');
+  });
+    test('returns 400 INVALID_REQUEST for a malformed test ID', async () => {
+    const res = await request(app)
+      .get('/api/admin/tests/invalid-id')
+      .set(adminHeader);
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('INVALID_REQUEST');
+  });
+    test('rejects reducing options below the existing correctOption', async () => {
+    const { questions } = await createTestWithQuestions({
+      questions: [{
+        text: 'Which number is largest?',
+        options: ['1', '2', '3', '4'],
+        correctOption: 3,
+        category: 'Quantitative',
+        marks: 1,
+      }],
+    });
+
+    const question = questions[0];
+
+    const res = await request(app)
+      .put(`/api/admin/questions/${question._id}`)
+      .set(adminHeader)
+      .send({
+        options: ['1', '2'],
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+
+    const { Question } = require('../src/models');
+    const saved = await Question.findById(question._id)
+      .select('+correctOption');
+
+    expect(saved.options).toHaveLength(4);
+    expect(saved.correctOption).toBe(3);
+  });
+    test('preserves student results after deleting an aptitude test', async () => {
+    const { test } = await createTestWithQuestions();
+    const student = await createStudent();
+    const Result = require('../src/models/Result');
+
+    const result = await Result.create({
+      studentId: student._id,
+      testId: test._id,
+      score: 1,
+      totalMarks: 1,
+      percentage: 100,
+    });
+
+    const res = await request(app)
+      .delete(`/api/admin/tests/${test._id}`)
+      .set(adminHeader);
+
+    expect(res.status).toBe(200);
+
+    const savedResult = await Result.findById(result._id);
+
+    expect(savedResult).not.toBeNull();
+    expect(savedResult.studentId.toString()).toBe(student._id.toString());
+    expect(savedResult.testId.toString()).toBe(test._id.toString());
+    expect(savedResult.score).toBe(1);
+  });
 });

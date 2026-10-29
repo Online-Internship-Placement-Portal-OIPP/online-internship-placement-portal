@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const { Test, Question } = require('../../models');
 const AppError = require('../../utils/AppError');
 const logger = require('../../utils/logger');
+const { z } = require('zod');
 
 // GET /api/admin/tests
 async function listTests() {
@@ -119,7 +120,13 @@ async function createQuestion(testId, data, adminId) {
   }
 
   if (data.correctOption >= data.options.length) {
-    throw new AppError('VALIDATION_ERROR');
+    throw new z.ZodError([
+  {
+    code: 'custom',
+    path: ['correctOption'],
+    message: 'correctOption must be a valid index within options.',
+  },
+]);
   }
 
   const question = await Question.create({
