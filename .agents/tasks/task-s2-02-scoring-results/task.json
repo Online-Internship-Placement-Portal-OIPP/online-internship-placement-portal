@@ -1,7 +1,0 @@
-{
-  "task_id": "task-s2-02-scoring-results",
-  "task_description": "Story S2-02: implement server-side aptitude test scoring (POST /api/tests/:id/submit), results listing (GET /api/results), result detail (GET /api/results/:id), replace ResultsPage and ResultDetailPage placeholders, and add TC-TEST-03 / TC-TEST-04 server tests plus client ResultDetailPage test.",
-  "status": "pending",
-  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003"],
-  "blocked_reason": null
-}
