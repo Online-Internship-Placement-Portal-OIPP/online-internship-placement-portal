@@ -10,10 +10,12 @@ const request = require('supertest');
 const jwt = require('jsonwebtoken');
 
 const app = require('../src/app');
+const { Result } = require('../src/models');
 const {
   createStudent,
   authHeader,
   createInternship,
+  createTestWithQuestions,
 } = require('./helpers');
 
 require('./setup');
@@ -34,6 +36,8 @@ function expectSafeError(response, status, code) {
 const protectedRoutes = [
   '/api/internships',
   '/api/internships/meta',
+  '/api/tests',
+  '/api/results',
 ];
 
 describe('TC-SEC-01 - Protected API authentication', () => {
@@ -264,5 +268,28 @@ describe('TC-SEC-02 - Admin internship API security', () => {
       expectSafeError(response, 401, 'UNAUTHORIZED');
     }
   );
+});
+
+// TC-SEC-04: Students must not access another student's results.
+describe('TC-SEC-04 - Student result data isolation', () => {
+  test('student cannot access another student result', async () => {
+    const owner = await createStudent();
+    const otherStudent = await createStudent();
+    const { test } = await createTestWithQuestions();
+
+    const result = await Result.create({
+      studentId: owner._id,
+      testId: test._id,
+      score: 1,
+      totalMarks: 1,
+      percentage: 100,
+    });
+
+    const response = await request(app)
+      .get(`/api/results/${result._id}`)
+      .set(authHeader(otherStudent));
+
+    expectSafeError(response, 404, 'RESULT_NOT_FOUND');
+  });
 });
 
