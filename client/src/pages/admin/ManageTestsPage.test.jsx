@@ -160,7 +160,34 @@ describe('S2-03 ManageTestsPage', () => {
 
     expect(link).toHaveAttribute(
       'href',
-      '/admin/tests/test-123/questions'
+      '/admin/tests/test-123'
     );
   });
+  test('rejects whitespace-only title and category', async () => {
+  renderPage();
+
+  fireEvent.click(screen.getByRole('button', {
+    name: /Add Aptitude Test/i,
+  }));
+
+  fireEvent.change(screen.getByLabelText(/Test Title/i), {
+    target: { value: '   ' },
+  });
+
+  fireEvent.change(screen.getByLabelText(/Category/i), {
+    target: { value: '   ' },
+  });
+
+  fireEvent.click(screen.getByRole('button', {
+    name: 'Create Test',
+  }));
+
+  expect(
+    await screen.findByText(
+      /Test title and category cannot be empty or contain only spaces/i
+    )
+  ).toBeInTheDocument();
+
+  expect(adminApi.createTest).not.toHaveBeenCalled();
+});
 });

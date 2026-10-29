@@ -233,4 +233,42 @@ describe('S2-03 ManageQuestionsPage', () => {
       screen.getByText(/Are you sure you want to delete this question/i)
     ).toBeInTheDocument();
   });
+  test('rejects whitespace-only question text and category', async () => {
+  renderPage();
+
+  await screen.findByText(/What is 10 \+ 20\?/);
+
+  fireEvent.click(
+    screen.getByRole('button', { name: /Add Question/i })
+  );
+
+  fireEvent.change(screen.getByLabelText(/Question/i), {
+    target: { value: '     ' },
+  });
+
+  fireEvent.change(screen.getByLabelText(/Category/i), {
+    target: { value: '     ' },
+  });
+
+  const options = ['10', '20', '30', '40'];
+
+  options.forEach((value, index) => {
+    fireEvent.change(
+      screen.getByLabelText(`Option ${index + 1}`),
+      { target: { value } }
+    );
+  });
+
+  fireEvent.click(
+    screen.getByRole('button', { name: 'Create Question' })
+  );
+
+  expect(
+    await screen.findByText(
+      /Question text and category cannot be empty or contain only spaces/i
+    )
+  ).toBeInTheDocument();
+
+  expect(adminApi.createQuestion).not.toHaveBeenCalled();
+});
 });

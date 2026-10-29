@@ -5,6 +5,8 @@ import { adminApi } from '../../api/adminApi';
 import Alert from '../../components/Alert';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import FormField from '../../components/FormField';
+import Loader from '../../components/Loader';
+import EmptyState from '../../components/EmptyState';
 
 const emptyForm = {
   text: '',
@@ -136,6 +138,13 @@ export const ManageQuestionsPage = () => {
       category: form.category.trim(),
       marks: Number(form.marks),
     };
+    if (!payload.text || !payload.category) {
+      setAlert({
+        type: 'error',
+        message: 'Question text and category cannot be empty or contain only spaces.',
+      });
+      return;
+    }
 
     if (
       payload.options.length < 2 ||
@@ -387,10 +396,13 @@ export const ManageQuestionsPage = () => {
         <h2>Questions ({questions.length})</h2>
 
         {loading ? (
-          <p>Loading questions...</p>
-        ) : questions.length === 0 ? (
-          <p>No questions found. Add the first question to this test.</p>
-        ) : (
+  <Loader message="Loading questions..." />
+) : questions.length === 0 ? (
+  <EmptyState
+    title="No questions found"
+    message="Add the first question to this aptitude test."
+  />
+) : (
           <div style={{ display: 'grid', gap: '16px' }}>
             {questions.map((question, index) => (
               <div
@@ -454,6 +466,7 @@ export const ManageQuestionsPage = () => {
       />
     </div>
   );
+
 };
 
 export default ManageQuestionsPage;

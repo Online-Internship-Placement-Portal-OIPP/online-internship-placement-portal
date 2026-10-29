@@ -5,6 +5,8 @@ import { adminApi } from '../../api/adminApi';
 import Alert from '../../components/Alert';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import FormField from '../../components/FormField';
+import Loader from '../../components/Loader';
+import EmptyState from '../../components/EmptyState';
 
 const emptyForm = {
   title: '',
@@ -80,9 +82,17 @@ export const ManageTestsPage = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (saving) return;
+if (saving) return;
 
-    setSaving(true);
+if (!form.title.trim() || !form.category.trim()) {
+  setAlert({
+    type: 'error',
+    message: 'Test title and category cannot be empty or contain only spaces.',
+  });
+  return;
+}
+
+setSaving(true);
     setAlert(null);
 
     try {
@@ -260,10 +270,13 @@ export const ManageTestsPage = () => {
         <h2>Aptitude Test Listings</h2>
 
         {loading ? (
-          <p>Loading aptitude tests...</p>
+       <Loader message="Loading aptitude tests..." />
         ) : tests.length === 0 ? (
-          <p>No aptitude tests found. Create your first test.</p>
-        ) : (
+        <EmptyState
+        title="No aptitude tests found"
+         message="Create your first aptitude test to get started."
+          />
+         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
@@ -292,7 +305,7 @@ export const ManageTestsPage = () => {
                         }}
                       >
                         <Link
-                          to={`/admin/tests/${test.id}/questions`}
+                          to={`/admin/tests/${test.id}`}
                           className="btn btn-secondary"
                         >
                           Questions
