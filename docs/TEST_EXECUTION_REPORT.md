@@ -4,14 +4,14 @@
 
 | Field | Value |
 |---|---|
-| Build/commit | `6c435f379171e3ca58be3332eb48502f74040011` (S2-08 baseline) |
+| Build/commit | `820619a` (S2-09 verification branch; based on S2-08) |
 | Date prepared | 30-Oct-2026 |
 | OS | Windows |
 | Node.js | v22.19.0 |
-| Browser | Manual browser run pending in the seeded demo environment |
+| Browser | Browser UI not manually exercised; client tests/build passed |
 | Tester | Manu Kudukundi |
 
-This report is intentionally factual. The focused S2-08 analysis tests, focused S2-09 data-integrity tests, and client production build were run locally. A seeded server-side performance run was not performed on this machine because MongoDB is not installed/running; therefore no NFR-01 percentage is invented here. Run `npm run seed`, start the server, then run `npm run perf` to replace the pending NFR-01 entry with the generated `docs/perf/nfr-01-results.json` values.
+This report records the seeded Atlas-backed run performed on 30-Oct-2026. The focused S2-08 analysis tests, focused S2-09 data-integrity tests, client production build, seeded Ravi analysis response, and performance workload were run locally.
 
 ## Test case execution matrix
 
@@ -30,8 +30,8 @@ This report is intentionally factual. The focused S2-08 analysis tests, focused 
 | TC-TEST-04 | FR-11, SR-04 | `server/tests/aptitude.test.js`, result tests | Results are private and newest-first | Existing automated coverage | Pass* |
 | TC-PROG-01 | FR-12, FR-13 | `server/tests/progress.test.js`, `ProgressPage.test.jsx` | Progress summary is accurate and private | Existing automated coverage | Pass* |
 | TC-PROG-02 | FR-13 | `server/tests/progress.test.js`, `ProgressPage.test.jsx` | Activity timeline is shown | Existing automated coverage | Pass* |
-| TC-PERF-01 (analysis) | FR-14 | `server/tests/analysis.test.js`, `AnalysisPage.test.jsx` | Analysis maths and charts use caller results | Backend 5/5; client 2/2; build passed | Pass |
-| NFR-01 (response time) | NFR-01 | `server/scripts/perf-test.js`, seeded manual run pending | At least 95% of 250 requests complete within 3 seconds | MongoDB/seeded server unavailable locally | Pending |
+| TC-PERF-01 (analysis) | FR-14 | `server/tests/analysis.test.js`, `AnalysisPage.test.jsx`, seeded Ravi API check | Analysis maths and charts use caller results | Backend 5/5; client 2/2; build passed; Ravi returned 2 attempts, average 79% | Pass |
+| NFR-01 (response time) | NFR-01 | `server/scripts/perf-test.js`, seeded Atlas run | At least 95% of 250 requests complete within 3 seconds | 250/250 within 3000 ms (100%), 0 errors | Pass |
 | TC-ADM-01 | FR-15 | `server/tests/adminInternships.test.js`, admin page tests | Admin manages internships | Existing automated coverage | Pass* |
 | TC-ADM-02 | FR-16 | `server/tests/adminAptitude.test.js`, admin page tests | Admin manages tests/questions | Existing automated coverage | Pass* |
 | TC-SEC-01 | SR-01 | `server/tests/security.test.js`, `middleware.test.js` | Authentication rejects missing/invalid sessions | Existing automated coverage | Pass* |
@@ -46,7 +46,24 @@ This report is intentionally factual. The focused S2-08 analysis tests, focused 
 
 ## NFR-01 performance section
 
-The script measures 250 requests at concurrency 10 across internship listing/filter/detail, applications, tests, results, progress, analysis, and login. It prints count, min, average, p95, max, errors, overall percentage under 3000 ms, and writes `docs/perf/nfr-01-results.json`. The result is pending until it is run against a seeded server.
+The script measured 250 requests at concurrency 10 against `http://localhost:5000/api` using the seeded Atlas database. It printed count, min, average, p95, max, errors, overall percentage under 3000 ms, and wrote `docs/perf/nfr-01-results.json`.
+
+| Endpoint group | Count | Average ms | P95 ms | Max ms | Errors |
+|---|---:|---:|---:|---:|---:|
+| POST /login | 10 | 492.58 | 825.92 | 825.92 | 0 |
+| GET /internships | 24 | 206.84 | 456.65 | 468.40 | 0 |
+| GET /internships?search=software | 24 | 88.35 | 269.98 | 271.51 | 0 |
+| GET /internships?category=Software Development | 24 | 77.93 | 250.29 | 253.59 | 0 |
+| GET /internships?location=Bengaluru | 24 | 80.98 | 258.01 | 269.73 | 0 |
+| GET /internships/:id | 24 | 83.09 | 91.61 | 94.49 | 0 |
+| GET /applications | 24 | 82.98 | 87.51 | 92.04 | 0 |
+| GET /tests | 24 | 56.18 | 60.91 | 62.23 | 0 |
+| GET /results | 24 | 85.80 | 92.32 | 123.43 | 0 |
+| GET /progress | 24 | 158.04 | 327.39 | 352.01 | 0 |
+| GET /analysis | 24 | 84.19 | 101.73 | 111.28 | 0 |
+| **Overall** | **250** | — | — | — | **0** |
+
+Overall result: **100% (250/250) completed within 3000 ms**; NFR-01 target is met.
 
 ## Requirements coverage summary
 
@@ -56,7 +73,7 @@ The script measures 250 requests at concurrency 10 across internship listing/fil
 | FR-08 to FR-11 | TC-TEST-01/02/03/04 | Pass* |
 | FR-12 to FR-14 | TC-PROG-01/02, TC-PERF-01 (analysis) | Pass* / Pass |
 | FR-15 to FR-16 | TC-ADM-01/02 | Pass* |
-| NFR-01 | NFR-01 response time | Pending seeded run |
+| NFR-01 | NFR-01 response time | Pass — 100% within 3 seconds |
 | NFR-03 to NFR-05 | TC-SEC-01..05, TC-DATA-01, TC-UX-01 | Pass* / Pass |
 | SR-01 to SR-05 | TC-SEC-01..05 | Pass* |
 
