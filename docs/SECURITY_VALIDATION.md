@@ -10,7 +10,7 @@
 | 1 | Access protected pages and APIs without logging in | SR-01 | TC-SEC-01 | **Pass** |
 | 2 | Use administrator functions with a student account | SR-02 | TC-SEC-02 | **Pass** |
 | 3 | Passwords are not stored or returned as plain text | SR-03 | TC-SEC-03 | **Pass** |
-| 4 | Access another student's applications and results | SR-04 | TC-SEC-04 | **Pass** (progress and analysis pending, see [Open items](#open-items)) |
+| 4 | Access another student's applications and results | SR-04 | TC-SEC-04 | **Pass** (analysis pending, see [Open items](#open-items)) |
 | 5 | Invalid requests and errors do not expose sensitive information | SR-05 | TC-SEC-05 | **Pass** |
 | 6 | Direct unauthorized API requests that bypass the frontend | SR-05 | TC-SEC-05 | **Pass** |
 
@@ -42,7 +42,7 @@ Two defects were found during validation and fixed in this story. See [Defects f
 
 **Evidence**
 - `security.test.js` › `TC-SEC-01 - Protected API authentication` (internship, test and results routes: no token, tampered, expired).
-- `security.test.js` › `TC-SEC-01 - Sprint 2 API authentication`: all 13 Sprint 2 routes (`/tests`, `/tests/:id`, `/tests/:id/submit`, `/results`, `/results/:id` and the 8 `/admin/tests` and `/admin/questions` routes) with no token and with expired tokens; deleted-user token; `alg: none` token.
+- `security.test.js` › `TC-SEC-01 - Sprint 2 API authentication`: all 14 Sprint 2 routes (`/tests`, `/tests/:id`, `/tests/:id/submit`, `/results`, `/results/:id`, `/progress` and the 8 `/admin/tests` and `/admin/questions` routes) with no token and with expired tokens; deleted-user token; `alg: none` token.
 - `security.test.js` › `TC-SEC-01 and TC-SEC-02 - Application API security`.
 - `TC-SEC-01-02.test.jsx` › `TC-SEC-01 redirects unauthenticated user to /login when accessing protected route`.
 - Postman › `7. Security checks` › `TC-SEC-01 no token`, `TC-SEC-01 tampered token` → 401 `UNAUTHORIZED`.
@@ -61,7 +61,7 @@ Two defects were found during validation and fixed in this story. See [Defects f
 
 **Evidence**
 - `security.test.js` › `TC-SEC-02 - Admin internship API security` (3 internship admin routes).
-- `security.test.js` › `TC-SEC-02 - Sprint 2 role-based authorization`: all 8 admin test/question routes reject students; all 5 student test/result routes reject admins; forged admin role rejected.
+- `security.test.js` › `TC-SEC-02 - Sprint 2 role-based authorization`: all 8 admin test/question routes reject students; all 6 student test/result/progress routes reject admins; forged admin role rejected.
 - `adminAptitude.test.js` › `TC-ADM-02` student 403 tests for each admin aptitude endpoint.
 - `TC-SEC-01-02.test.jsx` › `TC-SEC-02 redirects student accessing admin route to /dashboard` and `… admin accessing student-only route to /admin`.
 - Postman › `TC-SEC-02 student calls admin endpoint` → 403 `FORBIDDEN_ADMIN_ONLY`.
@@ -97,10 +97,11 @@ Two defects were found during validation and fixed in this story. See [Defects f
 - `applications.test.js` › `TC-SEC-04 applications are private`.
 - `security.test.js` › `TC-SEC-04 - Student result data isolation` (other student's result → 404).
 - `security.test.js` › `TC-SEC-04 - Sprint 2 student data isolation`: results list contains only the caller's results; a `studentId` in the submit body is rejected with `400 VALIDATION_ERROR` and nothing is saved for the other student; a submitted result is stored under the token user.
+- `security.test.js` › `TC-SEC-04 - Sprint 2 student data isolation` › `progress is built only from the caller's data` (added in S2-05).
 - `aptitude.test.js` › `TC-TEST-04` › `another student's result returns 404 RESULT_NOT_FOUND`.
 - Postman › `TC-SEC-04 other student's result` (Asha opens Ravi's result) → 404 `RESULT_NOT_FOUND`.
 
-**Result:** Pass for applications and results. Progress and analysis are pending (see [Open items](#open-items)).
+**Result:** Pass for applications, results and progress. Analysis is pending (see [Open items](#open-items)).
 
 ### 5. Errors do not expose sensitive information (TC-SEC-05)
 
@@ -147,7 +148,7 @@ Two defects were found during validation and fixed in this story. See [Defects f
 
 | Item | Reason | Action |
 |---|---|---|
-| Cross-student access to `GET /api/progress` and `GET /api/analysis` (SO-01) | These endpoints are built in S2-05 and S2-08 and are not merged yet. The routes currently return `404 NOT_FOUND`. | When each story merges, add both routes to the `sprint2StudentRoutes` list in `security.test.js` (gives 401/403 coverage automatically) and add a test that each response is built only from the caller's data. Then update this section to Pass. |
+| Cross-student access to `GET /api/analysis` (SO-01) | This endpoint is built in S2-08 and is not merged yet. The route currently returns `404 NOT_FOUND`. `GET /api/progress` was closed by S2-05. | When S2-08 merges, add the route to the `sprint2StudentRoutes` list in `security.test.js` (gives 401/403 coverage automatically) and add a test that the response is built only from the caller's data. Then update this section to Pass. |
 | HTTPS | Local development uses HTTP on localhost (deviation D-01). | Verify on the deployed instance. |
 
 ## Notes
