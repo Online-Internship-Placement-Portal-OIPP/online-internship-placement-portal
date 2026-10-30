@@ -1221,7 +1221,7 @@
     },
     {
       "name": "6. Progress and analysis (M5, M6)",
-      "description": "Planned in S2-05 (progress) and S2-08 (analysis). Until those stories merge these return 404 NOT_FOUND.",
+      "description": "Progress is implemented (S2-05). Analysis is planned in S2-08 and returns 404 NOT_FOUND until that story merges.",
       "item": [
         {
           "name": "My progress",

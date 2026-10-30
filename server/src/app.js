@@ -52,6 +52,9 @@ apiRouter.use('/admin', require('./modules/aptitude/adminAptitude.routes'));
 // M4 - Results (FR-11, SR-04)
 apiRouter.use('/results', require('./modules/aptitude/results.routes'));
 
+// M5 - Progress Tracking (FR-13, SR-04)
+apiRouter.use('/progress', require('./modules/progress/progress.routes'));
+
 app.use('/api', apiRouter);
 
 // 404 catch-all

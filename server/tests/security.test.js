@@ -309,6 +309,7 @@ const sprint2StudentRoutes = [
   ['POST', `/api/tests/${someId}/submit`],
   ['GET', '/api/results'],
   ['GET', `/api/results/${someId}`],
+  ['GET', '/api/progress'],
 ];
 
 const sprint2AdminRoutes = [
@@ -433,6 +434,22 @@ describe('TC-SEC-04 - Sprint 2 student data isolation', () => {
     expect(response.status).toBe(200);
     expect(response.body.data).toHaveLength(1);
     expect(response.body.data[0].percentage).toBe(0);
+  });
+
+  test('progress is built only from the caller\'s data', async () => {
+    const owner = await createStudent();
+    const other = await createStudent();
+    const { test, questions } = await createTestWithQuestions();
+
+    await send('POST', `/api/tests/${test._id}/submit`, authHeader(owner))
+      .send({ answers: [{ questionId: String(questions[0]._id), selectedOption: 1 }] });
+
+    const response = await send('GET', '/api/progress', authHeader(other));
+
+    expect(response.status).toBe(200);
+    expect(response.body.data.testsCompleted).toBe(0);
+    expect(response.body.data.totalAttempts).toBe(0);
+    expect(response.body.data.recentActivities).toEqual([]);
   });
 
   test('a submission cannot name another student in the body', async () => {
