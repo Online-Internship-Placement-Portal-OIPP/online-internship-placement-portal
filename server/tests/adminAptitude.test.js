@@ -368,4 +368,27 @@ describe('TC-ADM-02 Admin Aptitude Management', () => {
     expect(savedResult.testId.toString()).toBe(test._id.toString());
     expect(savedResult.score).toBe(1);
   });
+  test('deletes a test and its questions on a standalone MongoDB (no transactions)', async () => {
+    const { Test, Question } = require('../src/models');
+    const internshipsAdmin = require('../src/modules/internships/adminInternships.service');
+    const { test } = await createTestWithQuestions();
+
+    // Simulate a local Community Server, which does not support transactions.
+    const supportsSpy = jest
+      .spyOn(internshipsAdmin, 'supportsTransactions')
+      .mockReturnValue(false);
+
+    try {
+      const res = await request(app)
+        .delete(`/api/admin/tests/${test._id}`)
+        .set(adminHeader);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data).toEqual({ deleted: true, id: String(test._id) });
+      expect(await Test.findById(test._id)).toBeNull();
+      expect(await Question.countDocuments({ testId: test._id })).toBe(0);
+    } finally {
+      supportsSpy.mockRestore();
+    }
+  });
 });

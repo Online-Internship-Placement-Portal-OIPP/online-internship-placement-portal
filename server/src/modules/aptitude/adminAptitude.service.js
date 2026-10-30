@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const { Test, Question } = require('../../models');
 const AppError = require('../../utils/AppError');
 const logger = require('../../utils/logger');
+// Shared check for transaction support (replica set vs standalone MongoDB).
+const internshipsAdmin = require('../internships/adminInternships.service');
 const { z } = require('zod');
 
 // GET /api/admin/tests
@@ -78,29 +80,35 @@ async function updateTest(id, data, adminId) {
   return test;
 }
 
+/**
+ * Delete a test and its questions. Result documents are kept so students
+ * retain their attempt history (D-06).
+ */
+async function cascadeDeleteTest(id, session = null) {
+  const options = session ? { session } : {};
+
+  const test = await Test.findById(id).session(session);
+  if (!test) {
+    throw new AppError('TEST_NOT_FOUND');
+  }
+
+  await Question.deleteMany({ testId: id }, options);
+  await Test.findByIdAndDelete(id, options);
+}
+
 // DELETE /api/admin/tests/:id
+// Uses a transaction on a replica set; a standalone local MongoDB has no
+// transactions, so the two deletes run one after the other there.
 async function deleteTest(id, adminId) {
-  const session = await mongoose.startSession();
-
-  try {
-    await session.withTransaction(async () => {
-      const test = await Test.findById(id).session(session);
-
-      if (!test) {
-        throw new AppError('TEST_NOT_FOUND');
-      }
-
-      // Delete questions belonging to this test.
-      await Question.deleteMany({ testId: id }, { session });
-
-      // Delete the test itself.
-      await Test.findByIdAndDelete(id, { session });
-
-      // Do NOT delete Result documents.
-      // Students must retain their previous attempt history.
-    });
-  } finally {
-    await session.endSession();
+  if (internshipsAdmin.supportsTransactions()) {
+    const session = await mongoose.startSession();
+    try {
+      await session.withTransaction(() => cascadeDeleteTest(id, session));
+    } finally {
+      await session.endSession();
+    }
+  } else {
+    await cascadeDeleteTest(id);
   }
 
   logger.info('Admin aptitude test deleted', {
