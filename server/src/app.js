@@ -46,6 +46,9 @@ apiRouter.use('/applications', require('./modules/applications/applications.rout
 // M4 - Aptitude Test Management (FR-08, FR-09)
 apiRouter.use('/tests', require('./modules/aptitude/aptitude.routes'));
 
+// S2-03 - Admin Aptitude Test and Question Management
+apiRouter.use('/admin', require('./modules/aptitude/adminAptitude.routes'));
+
 // M4 - Results (FR-11, SR-04)
 apiRouter.use('/results', require('./modules/aptitude/results.routes'));
 
