@@ -1,6 +1,76 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import progressApi from '../api/progressApi';
+import Alert from '../components/Alert';
+import EmptyState from '../components/EmptyState';
+import Loader from '../components/Loader';
 import { useAuth } from '../context/AuthContext';
+
+/**
+ * Progress summary shown above the quick links. All values come from the server (FR-13).
+ * A loading failure stays inside this section so the links below keep working (NFR-05).
+ */
+const ProgressSummary = () => {
+  const [progress, setProgress] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    progressApi
+      .getProgress()
+      .then((response) => {
+        if (mounted) setProgress(response.data);
+      })
+      .catch((err) => {
+        if (mounted) setError(err?.message || 'Something went wrong. Please try again later.');
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (loading) return <Loader message="Loading your summary…" />;
+  if (error) return <Alert type="error" message={error} />;
+
+  if (progress.totalAttempts === 0 && progress.applicationsSubmitted === 0) {
+    return (
+      <EmptyState
+        icon="🚀"
+        title="No preparation activity yet"
+        message="Take an aptitude test or apply for an internship to see your summary here."
+        action={<Link to="/tests" className="btn btn-primary">Browse Tests</Link>}
+      />
+    );
+  }
+
+  return (
+    <div className="dashboard-summary">
+      <div className="card">
+        <span className="dashboard-stat-value">{progress.completionPercentage}%</span>
+        <span className="dashboard-stat-label">Preparation complete</span>
+      </div>
+      <div className="card">
+        <span className="dashboard-stat-value">
+          {progress.testsCompleted} / {progress.testsAvailable}
+        </span>
+        <span className="dashboard-stat-label">Tests completed</span>
+      </div>
+      <div className="card">
+        <span className="dashboard-stat-value">{progress.totalAttempts}</span>
+        <span className="dashboard-stat-label">Total attempts</span>
+      </div>
+      <div className="card">
+        <span className="dashboard-stat-value">{progress.applicationsSubmitted}</span>
+        <span className="dashboard-stat-label">Applications submitted</span>
+      </div>
+    </div>
+  );
+};
 
 export const StudentDashboard = () => {
   const { user } = useAuth();
@@ -15,6 +85,11 @@ export const StudentDashboard = () => {
           Your portal for placement preparation, aptitude practice, and internship applications.
         </p>
       </div>
+
+      <section aria-labelledby="summary-heading" style={{ marginBottom: 'var(--space-6)' }}>
+        <h2 id="summary-heading">Your Summary</h2>
+        <ProgressSummary />
+      </section>
 
       <h2>Quick Access</h2>
       <p style={{ color: 'var(--color-muted)' }}>
