@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -6,6 +6,7 @@ export const Navbar = () => {
   const { user, isAuthenticated, isAdmin, isStudent, logout } = useAuth();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const toggleRef = useRef(null);
 
   const handleLogout = () => {
     logout();
@@ -15,8 +16,16 @@ export const Navbar = () => {
   const toggleMenu = () => setIsOpen((prev) => !prev);
   const closeMenu = () => setIsOpen(false);
 
+  // Escape closes the mobile menu and returns keyboard focus to its toggle button.
+  const handleKeyDown = (event) => {
+    if (event.key === 'Escape' && isOpen) {
+      closeMenu();
+      toggleRef.current?.focus();
+    }
+  };
+
   return (
-    <header className="navbar">
+    <header className="navbar" onKeyDown={handleKeyDown}>
       <div className="navbar-container">
         <Link to="/" className="navbar-brand" onClick={closeMenu}>
           <span>OIPP</span>
@@ -25,7 +34,9 @@ export const Navbar = () => {
         <button
           type="button"
           className="nav-toggle"
+          ref={toggleRef}
           aria-expanded={isOpen}
+          aria-controls="main-navigation"
           aria-label="Toggle navigation menu"
           onClick={toggleMenu}
         >
@@ -33,6 +44,7 @@ export const Navbar = () => {
         </button>
 
         <nav
+          id="main-navigation"
           className={`navbar-nav ${isOpen ? 'open' : ''}`}
           aria-label="Main navigation"
         >
