@@ -119,16 +119,7 @@ async function createQuestion(testId, data, adminId) {
     throw new AppError('TEST_NOT_FOUND');
   }
 
-  if (data.correctOption >= data.options.length) {
-    throw new z.ZodError([
-  {
-    code: 'custom',
-    path: ['correctOption'],
-    message: 'correctOption must be a valid index within options.',
-  },
-]);
-  }
-
+  // correctOption < options.length is already enforced by createQuestionSchema.
   const question = await Question.create({
     ...data,
     testId,
@@ -167,7 +158,14 @@ async function updateQuestion(id, data, adminId) {
     finalCorrectOption < 0 ||
     finalCorrectOption >= finalOptions.length
   ) {
-    throw new AppError('VALIDATION_ERROR');
+    // Thrown as a ZodError so errorHandler returns VALIDATION_ERROR with field details.
+    throw new z.ZodError([
+      {
+        code: 'custom',
+        path: ['correctOption'],
+        message: 'correctOption must be a valid index within options.',
+      },
+    ]);
   }
 
   question.set(data);

@@ -396,13 +396,13 @@ export const ManageQuestionsPage = () => {
         <h2>Questions ({questions.length})</h2>
 
         {loading ? (
-  <Loader message="Loading questions..." />
-) : questions.length === 0 ? (
-  <EmptyState
-    title="No questions found"
-    message="Add the first question to this aptitude test."
-  />
-) : (
+          <Loader message="Loading questions..." />
+        ) : questions.length === 0 ? (
+          <EmptyState
+            title="No questions found"
+            message="Add the first question to this aptitude test."
+          />
+        ) : (
           <div style={{ display: 'grid', gap: '16px' }}>
             {questions.map((question, index) => (
               <div
@@ -466,7 +466,6 @@ export const ManageQuestionsPage = () => {
       />
     </div>
   );
-
 };
 
 export default ManageQuestionsPage;

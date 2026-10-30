@@ -331,6 +331,9 @@ describe('TC-ADM-02 Admin Aptitude Management', () => {
 
     expect(res.status).toBe(400);
     expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    expect(res.body.error.details).toEqual([
+      expect.objectContaining({ field: 'correctOption' }),
+    ]);
 
     const { Question } = require('../src/models');
     const saved = await Question.findById(question._id)

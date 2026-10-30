@@ -82,17 +82,17 @@ export const ManageTestsPage = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-if (saving) return;
+    if (saving) return;
 
-if (!form.title.trim() || !form.category.trim()) {
-  setAlert({
-    type: 'error',
-    message: 'Test title and category cannot be empty or contain only spaces.',
-  });
-  return;
-}
+    if (!form.title.trim() || !form.category.trim()) {
+      setAlert({
+        type: 'error',
+        message: 'Test title and category cannot be empty or contain only spaces.',
+      });
+      return;
+    }
 
-setSaving(true);
+    setSaving(true);
     setAlert(null);
 
     try {
@@ -270,13 +270,13 @@ setSaving(true);
         <h2>Aptitude Test Listings</h2>
 
         {loading ? (
-       <Loader message="Loading aptitude tests..." />
+          <Loader message="Loading aptitude tests..." />
         ) : tests.length === 0 ? (
-        <EmptyState
-        title="No aptitude tests found"
-         message="Create your first aptitude test to get started."
+          <EmptyState
+            title="No aptitude tests found"
+            message="Create your first aptitude test to get started."
           />
-         ) : (
+        ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
