@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const request = require('supertest');
 const app = require('../src/app');
 const { Result } = require('../src/models');
@@ -64,9 +65,45 @@ describe('TC-PERF-01 analysis calculations', () => {
     ]);
   });
 
+  it('counts every attempt but limits the trend to the latest 20, with one category as both strongest and weakest', async () => {
+    const student = await createStudent();
+    const { test } = await createTestWithQuestions({ title: 'Verbal Set' });
+    // 21 attempts on 1-21 Oct, where each percentage equals the day of the month.
+    await Result.create(Array.from({ length: 21 }, (_, index) => ({
+      studentId: student._id,
+      testId: test._id,
+      score: 1,
+      totalMarks: 2,
+      percentage: index + 1,
+      categoryScores: [{ category: 'Verbal', score: 1, total: 2 }],
+      submittedAt: new Date(Date.UTC(2026, 9, index + 1)),
+    })));
+    const response = await request(app).get('/api/analysis').set(authHeader(student));
+    expect(response.status).toBe(200);
+    // Average = round((1 + 2 + ... + 21) / 21) = 11; Verbal = 21/42 = 50%.
+    expect(response.body.data).toMatchObject({ attempts: 21, averagePercentage: 11, bestPercentage: 21, latestPercentage: 21, strongestCategory: 'Verbal', weakestCategory: 'Verbal' });
+    expect(response.body.data.categoryPerformance).toEqual([{ category: 'Verbal', correctMarks: 21, totalMarks: 42, accuracy: 50 }]);
+    // The 1 Oct attempt is dropped, leaving 2-21 Oct in chronological order.
+    expect(response.body.data.trend).toHaveLength(20);
+    expect(response.body.data.trend[0]).toEqual({ date: '2026-10-02', testTitle: 'Verbal Set', percentage: 2 });
+    expect(response.body.data.trend[19]).toEqual({ date: '2026-10-21', testTitle: 'Verbal Set', percentage: 21 });
+  });
+
+  it('labels results of a deleted test as Test removed in the trend', async () => {
+    const student = await createStudent();
+    await Result.create({ studentId: student._id, testId: new mongoose.Types.ObjectId(), score: 1, totalMarks: 1, percentage: 100, categoryScores: [{ category: 'Logical', score: 1, total: 1 }], submittedAt: new Date('2026-10-01') });
+    const response = await request(app).get('/api/analysis').set(authHeader(student));
+    expect(response.status).toBe(200);
+    expect(response.body.data.trend).toEqual([{ date: '2026-10-01', testTitle: 'Test removed', percentage: 100 }]);
+  });
+
   it('rejects admins and unauthenticated callers', async () => {
     const admin = await createAdmin();
-    expect((await request(app).get('/api/analysis').set(authHeader(admin))).status).toBe(403);
-    expect((await request(app).get('/api/analysis')).status).toBe(401);
+    const adminResponse = await request(app).get('/api/analysis').set(authHeader(admin));
+    expect(adminResponse.status).toBe(403);
+    expect(adminResponse.body.error.code).toBe('FORBIDDEN');
+    const anonymousResponse = await request(app).get('/api/analysis');
+    expect(anonymousResponse.status).toBe(401);
+    expect(anonymousResponse.body.error.code).toBe('UNAUTHORIZED');
   });
 });
