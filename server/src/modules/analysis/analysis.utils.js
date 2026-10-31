@@ -2,6 +2,11 @@ function roundPercentage(value) {
   return Math.round(value);
 }
 
+/**
+ * Attempt count plus average, best and latest percentage.
+ *
+ * @param {Array} results - The student's results, oldest first (at least one)
+ */
 function summarizePercentages(results) {
   const percentages = results.map((result) => result.percentage);
   return {
@@ -12,6 +17,12 @@ function summarizePercentages(results) {
   };
 }
 
+/**
+ * Add up each category's marks across all results and work out its accuracy.
+ *
+ * @param {Array} results - The student's results
+ * @returns {Array<{category: string, correctMarks: number, totalMarks: number, accuracy: number}>} Sorted by category name
+ */
 function aggregateCategoryScores(results) {
   const totals = new Map();
   for (const result of results) {
@@ -32,6 +43,12 @@ function aggregateCategoryScores(results) {
     }));
 }
 
+/**
+ * Pick the highest and lowest accuracy categories. Ties go to the first name alphabetically,
+ * because the sorts below keep the alphabetical order of equal items.
+ *
+ * @param {Array} categoryPerformance - Output of aggregateCategoryScores
+ */
 function chooseCategory(categoryPerformance) {
   if (categoryPerformance.length === 0) return { strongestCategory: null, weakestCategory: null };
   const alphabetical = [...categoryPerformance].sort((left, right) => left.category.localeCompare(right.category));
@@ -40,6 +57,12 @@ function chooseCategory(categoryPerformance) {
   return { strongestCategory: strongest.category, weakestCategory: weakest.category };
 }
 
+/**
+ * Build the chronological trend from the latest 20 results.
+ *
+ * @param {Array} results - The student's results, oldest first
+ * @param {Map<string, string>} titleByTestId - Titles of the tests that still exist
+ */
 function buildTrend(results, titleByTestId) {
   return results.slice(-20).map((result) => ({
     date: new Date(result.submittedAt).toISOString().slice(0, 10),
