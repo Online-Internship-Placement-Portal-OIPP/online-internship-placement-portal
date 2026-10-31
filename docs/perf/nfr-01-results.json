@@ -1,0 +1,109 @@
+{
+  "baseUrl": "http://localhost:5000/api",
+  "generatedAt": "2026-10-30T15:38:15.493Z",
+  "concurrency": 10,
+  "rows": [
+    {
+      "endpoint": "POST /login",
+      "count": 10,
+      "minMs": 161.84,
+      "avgMs": 492.58,
+      "p95Ms": 825.92,
+      "maxMs": 825.92,
+      "errors": 0
+    },
+    {
+      "endpoint": "GET /internships",
+      "count": 24,
+      "minMs": 82.18,
+      "avgMs": 206.84,
+      "p95Ms": 456.65,
+      "maxMs": 468.4,
+      "errors": 0
+    },
+    {
+      "endpoint": "GET /internships?search=software",
+      "count": 24,
+      "minMs": 57.38,
+      "avgMs": 88.35,
+      "p95Ms": 269.98,
+      "maxMs": 271.51,
+      "errors": 0
+    },
+    {
+      "endpoint": "GET /internships?category=Software%20Development",
+      "count": 24,
+      "minMs": 53.11,
+      "avgMs": 77.93,
+      "p95Ms": 250.29,
+      "maxMs": 253.59,
+      "errors": 0
+    },
+    {
+      "endpoint": "GET /internships?location=Bengaluru",
+      "count": 24,
+      "minMs": 54.28,
+      "avgMs": 80.98,
+      "p95Ms": 258.01,
+      "maxMs": 269.73,
+      "errors": 0
+    },
+    {
+      "endpoint": "GET /internships/:id",
+      "count": 24,
+      "minMs": 73.99,
+      "avgMs": 83.09,
+      "p95Ms": 91.61,
+      "maxMs": 94.49,
+      "errors": 0
+    },
+    {
+      "endpoint": "GET /applications",
+      "count": 24,
+      "minMs": 77.92,
+      "avgMs": 82.98,
+      "p95Ms": 87.51,
+      "maxMs": 92.04,
+      "errors": 0
+    },
+    {
+      "endpoint": "GET /tests",
+      "count": 24,
+      "minMs": 52.73,
+      "avgMs": 56.18,
+      "p95Ms": 60.91,
+      "maxMs": 62.23,
+      "errors": 0
+    },
+    {
+      "endpoint": "GET /results",
+      "count": 24,
+      "minMs": 76.75,
+      "avgMs": 85.8,
+      "p95Ms": 92.32,
+      "maxMs": 123.43,
+      "errors": 0
+    },
+    {
+      "endpoint": "GET /progress",
+      "count": 24,
+      "minMs": 100.61,
+      "avgMs": 158.04,
+      "p95Ms": 327.39,
+      "maxMs": 352.01,
+      "errors": 0
+    },
+    {
+      "endpoint": "GET /analysis",
+      "count": 24,
+      "minMs": 77.75,
+      "avgMs": 84.19,
+      "p95Ms": 101.73,
+      "maxMs": 111.28,
+      "errors": 0
+    }
+  ],
+  "overallPercentUnderThreeSeconds": 100,
+  "totalRequests": 250,
+  "errors": 0
+}
