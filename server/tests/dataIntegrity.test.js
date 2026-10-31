@@ -32,12 +32,36 @@ describe('TC-DATA-01 application and result data integrity', () => {
     expect(await Result.countDocuments({ studentId: student._id, testId: test._id })).toBe(0);
   });
 
-  it('keeps application ownership tied to the verified token and cascades internship deletion', async () => {
+  it('rejects a duplicate application at the database level through the unique index', async () => {
+    const student = await createStudent();
+    const internship = await createInternship();
+    const record = { studentId: student._id, internshipId: internship._id };
+    await Application.create(record);
+    await expect(Application.create(record)).rejects.toMatchObject({ code: 11000 });
+    expect(await Application.countDocuments(record)).toBe(1);
+  });
+
+  it('rejects a studentId in the request body and takes the owner from the token', async () => {
+    const student = await createStudent();
+    const otherStudent = await createStudent();
+    const internship = await createInternship();
+    const internshipId = internship._id.toString();
+    const spoofed = await request(app).post('/api/applications').set(authHeader(student)).send({ internshipId, studentId: otherStudent._id.toString() });
+    expect(spoofed.status).toBe(400);
+    expect(spoofed.body.error.code).toBe('INVALID_APPLICATION');
+    expect(await Application.countDocuments({ internshipId: internship._id })).toBe(0);
+    const applied = await request(app).post('/api/applications').set(authHeader(student)).send({ internshipId });
+    expect(applied.status).toBe(201);
+    expect(await Application.countDocuments({ studentId: student._id, internshipId: internship._id })).toBe(1);
+    expect(await Application.countDocuments({ studentId: otherStudent._id })).toBe(0);
+  });
+
+  it('deleting an internship also deletes its applications', async () => {
     const student = await createStudent();
     const admin = await createAdmin();
     const internship = await createInternship();
-    await request(app).post('/api/applications').set(authHeader(student)).send({ internshipId: internship._id.toString() });
-    expect(await Application.countDocuments({ studentId: student._id, internshipId: internship._id })).toBe(1);
+    const applied = await request(app).post('/api/applications').set(authHeader(student)).send({ internshipId: internship._id.toString() });
+    expect(applied.status).toBe(201);
     const response = await request(app).delete(`/api/admin/internships/${internship._id}`).set(authHeader(admin));
     expect(response.status).toBe(200);
     expect(await Application.countDocuments({ internshipId: internship._id })).toBe(0);
