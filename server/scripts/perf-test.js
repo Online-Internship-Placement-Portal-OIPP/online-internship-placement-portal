@@ -1,3 +1,9 @@
+/*
+ * NFR-01 response-time measurement. Start the seeded server, then run `npm run perf`.
+ * Each run sends 11 login requests, and logins are limited to 20 per 15 minutes per IP,
+ * so wait 15 minutes between runs (or restart the server) or the second run reports 429 errors.
+ * Results are written to docs/perf/nfr-01-results.json. The exit code is 1 if the target is missed.
+ */
 const fs = require('node:fs');
 const path = require('node:path');
 const { performance } = require('node:perf_hooks');
@@ -5,8 +11,6 @@ const { performance } = require('node:perf_hooks');
 const BASE_URL = (process.env.BASE_URL || 'http://localhost:5000/api').replace(/\/$/, '');
 const studentEmail = process.env.PERF_STUDENT_EMAIL || 'ravi@oipp.test';
 const studentPassword = process.env.PERF_STUDENT_PASSWORD || 'Student@123';
-const adminEmail = process.env.PERF_ADMIN_EMAIL || 'admin@oipp.test';
-const adminPassword = process.env.PERF_ADMIN_PASSWORD || 'Admin@12345';
 const TOTAL_REQUESTS = 250;
 const CONCURRENCY = 10;
 
@@ -64,15 +68,17 @@ function printReport(records) {
   const successful = records.filter((record) => !record.error);
   const withinTarget = successful.filter((record) => record.durationMs <= 3000).length;
   const overallPercentUnderThreeSeconds = Number(((withinTarget / records.length) * 100).toFixed(2));
-  console.table(rows);
-  console.log(`Overall: ${records.length} requests; ${overallPercentUnderThreeSeconds}% <= 3000 ms; ${records.length - successful.length} errors`);
-  return { rows, overallPercentUnderThreeSeconds, totalRequests: records.length, errors: records.length - successful.length };
+  const overallP95Ms = Number(percentile(records.map((record) => record.durationMs), 95).toFixed(2));
+  rows.forEach((row) => {
+    process.stdout.write(`${row.endpoint}: count ${row.count}, min ${row.minMs} ms, avg ${row.avgMs} ms, p95 ${row.p95Ms} ms, max ${row.maxMs} ms, errors ${row.errors}\n`);
+  });
+  process.stdout.write(`Overall: ${records.length} requests; p95 ${overallP95Ms} ms; ${overallPercentUnderThreeSeconds}% <= 3000 ms; ${records.length - successful.length} errors\n`);
+  return { rows, overallP95Ms, overallPercentUnderThreeSeconds, totalRequests: records.length, errors: records.length - successful.length };
 }
 
 async function main() {
-  console.log(`Running ${TOTAL_REQUESTS} requests against ${BASE_URL} with concurrency ${CONCURRENCY}`);
+  process.stdout.write(`Running ${TOTAL_REQUESTS} requests against ${BASE_URL} with concurrency ${CONCURRENCY}\n`);
   const studentToken = await login(studentEmail, studentPassword);
-  await login(adminEmail, adminPassword);
 
   const internshipsResponse = await request('GET', '/internships', null, studentToken);
   const internships = internshipsResponse.payload.data.items || [];
@@ -119,6 +125,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error(`Performance test failed: ${error.message}`);
+  process.stderr.write(`Performance test failed: ${error.message}\n`);
   process.exitCode = 1;
 });
