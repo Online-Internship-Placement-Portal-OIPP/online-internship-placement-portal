@@ -30,6 +30,21 @@ export const setStoredAuth = (data) => {
   }
 };
 
+/**
+ * Turn VALIDATION_ERROR details into { fieldName: message } for form fields.
+ * Nested paths such as "options.1" map to their top-level field ("options");
+ * the first message for each field is kept.
+ */
+export const toFieldErrors = (details) => {
+  const fieldErrors = {};
+  if (!Array.isArray(details)) return fieldErrors;
+  details.forEach(({ field, message }) => {
+    const name = String(field || '').split('.')[0];
+    if (name && message && !fieldErrors[name]) fieldErrors[name] = message;
+  });
+  return fieldErrors;
+};
+
 export const clearStoredAuth = () => {
   try {
     sessionStorage.removeItem(AUTH_STORAGE_KEY);

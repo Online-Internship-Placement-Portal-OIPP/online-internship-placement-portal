@@ -244,5 +244,12 @@ describe('TC-ADM-01 ManageInternshipsPage - create and edit', () => {
     expect(await screen.findByText('Please correct the highlighted fields.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Create Internship' })).toBeInTheDocument();
     expect(screen.queryByText('Internship created successfully.')).not.toBeInTheDocument();
+
+    // S3-D1: the message from details is shown under its field and cleared on edit.
+    expect(screen.getByText('Deadline must be today or later.')).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Application Deadline/)).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByLabelText(/^Title/)).toHaveAttribute('aria-invalid', 'false');
+    fill({ deadline: '2027-03-01' });
+    expect(screen.queryByText('Deadline must be today or later.')).not.toBeInTheDocument();
   });
 });

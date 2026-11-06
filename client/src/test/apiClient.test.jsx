@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import apiClient, { getStoredAuth, setStoredAuth, clearStoredAuth } from '../api/client';
+import apiClient, { getStoredAuth, setStoredAuth, clearStoredAuth, toFieldErrors } from '../api/client';
 
 describe('Centralized API Client & Storage (S0-05)', () => {
   beforeEach(() => {
@@ -101,5 +101,21 @@ describe('Centralized API Client & Storage (S0-05)', () => {
       expect(err.code).toBe('UNAUTHORIZED');
       expect(getStoredAuth()).toBeNull();
     }
+  });
+});
+
+// S3-04: VALIDATION_ERROR details to form field messages (defect S3-D1).
+describe('toFieldErrors', () => {
+  it('maps details to top-level field names and keeps the first message per field', () => {
+    expect(toFieldErrors([
+      { field: 'title', message: 'Title is too short.' },
+      { field: 'options.1', message: 'Option 2 is empty.' },
+      { field: 'options.3', message: 'Option 4 is empty.' },
+    ])).toEqual({ title: 'Title is too short.', options: 'Option 2 is empty.' });
+  });
+
+  it('returns an empty map when there are no usable details', () => {
+    expect(toFieldErrors(undefined)).toEqual({});
+    expect(toFieldErrors([{ message: 'No field' }, { field: 'title' }])).toEqual({});
   });
 });

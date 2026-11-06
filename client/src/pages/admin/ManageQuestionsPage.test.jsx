@@ -272,3 +272,47 @@ describe('S2-03 ManageQuestionsPage', () => {
   expect(adminApi.createQuestion).not.toHaveBeenCalled();
 });
 });
+
+// S3-04: field-level validation messages (defect S3-D1, CLAUDE.md §9).
+describe('TC-ADM-02 ManageQuestionsPage - field-level validation messages', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    adminApi.getAdminTestById.mockResolvedValue({ success: true, data: sampleTest });
+  });
+
+  test('shows server VALIDATION_ERROR messages under the question and the options', async () => {
+    adminApi.updateQuestion.mockRejectedValue({
+      code: 'VALIDATION_ERROR',
+      message: 'Please correct the highlighted fields.',
+      details: [
+        { field: 'text', message: 'Question text must be at least 5 characters.' },
+        { field: 'options.1', message: 'Options cannot be empty.' },
+      ],
+    });
+    renderPage();
+
+    await screen.findByText(/What is 10 \+ 20\?/);
+    fireEvent.click(screen.getByRole('button', { name: /^Edit$/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }));
+
+    expect(await screen.findByText('Question text must be at least 5 characters.')).toBeInTheDocument();
+    expect(screen.getByText('Options cannot be empty.')).toBeInTheDocument();
+    expect(screen.getByLabelText('Option 1')).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByLabelText('Option 1')).toHaveAttribute('aria-describedby', 'question-options-error');
+  });
+
+  test('marks an empty option before sending, and clears the message when it is edited', async () => {
+    renderPage();
+
+    await screen.findByText(/What is 10 \+ 20\?/);
+    fireEvent.click(screen.getByRole('button', { name: /^Edit$/i }));
+    fireEvent.change(screen.getByLabelText('Option 2'), { target: { value: '   ' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }));
+
+    expect(await screen.findByText('Provide 2 to 6 options, none of them empty.')).toBeInTheDocument();
+    expect(adminApi.updateQuestion).not.toHaveBeenCalled();
+
+    fireEvent.change(screen.getByLabelText('Option 2'), { target: { value: '20' } });
+    expect(screen.queryByText('Provide 2 to 6 options, none of them empty.')).not.toBeInTheDocument();
+  });
+});
