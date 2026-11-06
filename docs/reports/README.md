@@ -1,13 +1,17 @@
 # OIPP Test Reports (Part-3)
 
-Test reports for Mini-Project Deliverables Part-3, item 2. They were run on 06-11-2026 against `main` at commit `569fa35`, following the Software Test Plan v3.0 (`docs/OIPP_Software_Test_Plan_v3_Final.docx`).
+Test reports for Mini-Project Deliverables Part-3, item 2. They were run on 06-11-2026 against `main` at commit `569fa35` plus the Sprint-3 tests (S3-03), following the Software Test Plan v3.1 (`docs/OIPP_Software_Test_Plan_v3_Final.docx`).
 
 | Report | File | Headline result |
 |---|---|---|
-| Unit Test Report | [OIPP_Unit_Test_Report.docx](OIPP_Unit_Test_Report.docx) | 367 of 367 tests passed (server 274, client 93) |
-| System Validation Report | [OIPP_System_Validation_Report.docx](OIPP_System_Validation_Report.docx) | 24 of 24 test cases pass; 80 of 81 checks passed with 1 observation; Postman 36/36; NFR-01 met |
-| Code Coverage Report | [OIPP_Code_Coverage_Report.docx](OIPP_Code_Coverage_Report.docx) | Statements: server 92.3%, client 84.2% |
-| Branch Coverage Report | [OIPP_Branch_Coverage_Report.docx](OIPP_Branch_Coverage_Report.docx) | Branches: server 76.3%, client 77.8% |
+| Unit Test Report | [OIPP_Unit_Test_Report.docx](OIPP_Unit_Test_Report.docx) | 390 of 390 tests passed (server 284, client 106), including 23 tests added in Sprint 3 |
+| System Validation Report | [OIPP_System_Validation_Report.docx](OIPP_System_Validation_Report.docx) | 22 of 24 test cases pass; TC-ADM-01 and TC-ADM-02 fail on open defect S3-D1 (admin forms do not show field-level validation messages). Postman 36/36; NFR-01 met |
+| Code Coverage Report | [OIPP_Code_Coverage_Report.docx](OIPP_Code_Coverage_Report.docx) | Statements: server 93.1%, client 95.1% |
+| Branch Coverage Report | [OIPP_Branch_Coverage_Report.docx](OIPP_Branch_Coverage_Report.docx) | Branches: server 79.0%, client 78.6%; every documented server error path is tested |
+
+## Open defect
+
+**S3-D1 (medium):** Manage Internships, Manage Tests and Manage Questions show a server `VALIDATION_ERROR` only as the alert "Please correct the highlighted fields." Nothing is highlighted and the `details` messages are not shown (CLAUDE.md §9). Invalid data is still rejected. Fix: pass `details` to each `FormField` `error`, as `RegisterPage` does, then re-run TC-ADM-01 step 5 and TC-ADM-02 steps 3–4.
 
 ## Evidence
 
@@ -20,7 +24,7 @@ Test reports for Mini-Project Deliverables Part-3, item 2. They were run on 06-1
 | `evidence/system-validation-results.json` | Every system validation check: step, expected, actual, status |
 | `evidence/newman-summary.json` | Postman/Newman run (tokens removed) |
 | `evidence/nfr-01-local-standalone.json` | NFR-01 performance run on a standalone MongoDB |
-| `evidence/screens/` | 42 screenshots from the system validation run |
+| `evidence/screens/` | 44 screenshots from the system validation run |
 
 ## How to reproduce
 

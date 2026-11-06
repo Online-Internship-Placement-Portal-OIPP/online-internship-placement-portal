@@ -10,14 +10,34 @@
     "at": "2026-11-06T15:46:20.216Z"
   },
   {
-    "phase": "ui",
+    "phase": "recheck",
     "tc": "TC-AUTH-01",
-    "step": "Step 4: submit empty form and invalid values",
-    "expected": "Field-level validation messages; nothing created",
-    "actual": "3 messages on empty submit; invalid values show name/email/password messages; still on /register",
+    "step": "Step 4: submit the empty form",
+    "expected": "A message under each field; no request sent",
+    "actual": "Full Name: \"Full name is required\"; Email: \"Email address is required\"; Password: \"Password is required (min 8 characters)\"",
+    "status": "Pass",
+    "shot": "TC-AUTH-01-empty.png",
+    "at": "2026-11-06T16:18:29.001Z"
+  },
+  {
+    "phase": "recheck",
+    "tc": "TC-AUTH-01",
+    "step": "Step 4: password \"short\" (under 8 characters)",
+    "expected": "Message under Password; no request sent",
+    "actual": "Password: \"Password must be at least 8 characters\"",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T16:18:29.059Z"
+  },
+  {
+    "phase": "recheck",
+    "tc": "TC-AUTH-01",
+    "step": "Step 4: name \"A\" and email \"abc\" (checked by the server)",
+    "expected": "400 VALIDATION_ERROR shown under Full Name and Email",
+    "actual": "Full Name: \"Name must be at least 2 characters.\"; Email: \"A valid email address is required.\"; still on /register",
     "status": "Pass",
     "shot": "TC-AUTH-01-invalid.png",
-    "at": "2026-11-06T15:46:20.367Z"
+    "at": "2026-11-06T16:18:29.186Z"
   },
   {
     "phase": "ui",
@@ -100,14 +120,14 @@
     "at": "2026-11-06T15:46:21.517Z"
   },
   {
-    "phase": "ui",
+    "phase": "recheck",
     "tc": "TC-AUTH-02",
-    "step": "Step 6: submit empty form",
-    "expected": "Field messages; no request sent",
-    "actual": "Field-level messages shown for email and password",
+    "step": "Step 6: submit the empty login form",
+    "expected": "A message under each field",
+    "actual": "Email: \"Email is required\"; Password: \"Password is required\"",
     "status": "Pass",
-    "shot": "",
-    "at": "2026-11-06T15:46:21.573Z"
+    "shot": "TC-AUTH-02-empty.png",
+    "at": "2026-11-06T16:18:29.313Z"
   },
   {
     "phase": "ui",
@@ -614,7 +634,7 @@
     "tc": "TC-ADM-01",
     "step": "Steps 1-2: add an internship",
     "expected": "Created; table refreshes with success alert",
-    "actual": "Row \"Data Analyst Intern SV\" added; alert \"Internship created successfully.\n×\"",
+    "actual": "Row \"Data Analyst Intern SV\" added; alert \"Internship created successfully.\n\u00d7\"",
     "status": "Pass",
     "shot": "TC-ADM-01-created.png",
     "at": "2026-11-06T15:47:21.697Z"
@@ -630,14 +650,14 @@
     "at": "2026-11-06T15:47:21.849Z"
   },
   {
-    "phase": "admin",
+    "phase": "recheck",
     "tc": "TC-ADM-01",
-    "step": "Step 5: invalid data (title \"A\", past deadline)",
-    "expected": "Rejected with field messages",
-    "actual": "Form shows field messages; API 400 VALIDATION_ERROR on [title, deadline]",
-    "status": "Pass",
+    "step": "Step 5: save title \"A\" with a past deadline",
+    "expected": "Rejected; 400 VALIDATION_ERROR with field messages",
+    "actual": "API 400 VALIDATION_ERROR on [title, deadline]; nothing saved (0); the page shows one alert \"Please correct the highlighted fields.\" and 0 field-level messages. Defect S3-D1.",
+    "status": "Fail",
     "shot": "TC-ADM-01-invalid.png",
-    "at": "2026-11-06T15:47:22.825Z"
+    "at": "2026-11-06T16:18:31.254Z"
   },
   {
     "phase": "admin",
@@ -670,14 +690,14 @@
     "at": "2026-11-06T15:47:24.442Z"
   },
   {
-    "phase": "admin",
+    "phase": "recheck",
     "tc": "TC-ADM-02",
-    "step": "Step 2: add a question with the correct option",
-    "expected": "Question shown with its correct answer",
-    "actual": "Question listed with 4 options and the correct answer marked",
+    "step": "Step 2: question shows its correct answer",
+    "expected": "The selected option is marked \"Correct Answer\"",
+    "actual": "1 option marked: \"Yes \u2014 Correct Answer\"",
     "status": "Pass",
     "shot": "TC-ADM-02-question.png",
-    "at": "2026-11-06T15:47:24.632Z"
+    "at": "2026-11-06T16:18:31.987Z"
   },
   {
     "phase": "admin",
@@ -708,6 +728,16 @@
     "status": "Pass",
     "shot": "",
     "at": "2026-11-06T15:47:27.013Z"
+  },
+  {
+    "phase": "recheck",
+    "tc": "TC-ADM-02",
+    "step": "Steps 3-4: server validation error shown on the Manage Tests and Manage Questions forms",
+    "expected": "400 VALIDATION_ERROR with field messages",
+    "actual": "Manage Tests: verified in a component test with the API mocked to return VALIDATION_ERROR with a title detail: the summary \"Please correct the highlighted fields.\" is shown, the field message is not, 0 field errors. Manage Questions: the same code path (no field errors are passed to its form fields), confirmed by code inspection. Invalid data is rejected by the API (step 3-4 API check above). Defect S3-D1.",
+    "status": "Fail",
+    "shot": "",
+    "at": "2026-11-06T16:30:00.000Z"
   },
   {
     "phase": "admin",
