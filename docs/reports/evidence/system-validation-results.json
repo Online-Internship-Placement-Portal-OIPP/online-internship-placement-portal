@@ -650,14 +650,14 @@
     "at": "2026-11-06T15:47:21.849Z"
   },
   {
-    "phase": "recheck",
+    "phase": "admfix",
     "tc": "TC-ADM-01",
     "step": "Step 5: save title \"A\" with a past deadline",
     "expected": "Rejected; 400 VALIDATION_ERROR with field messages",
-    "actual": "API 400 VALIDATION_ERROR on [title, deadline]; nothing saved (0); the page shows one alert \"Please correct the highlighted fields.\" and 0 field-level messages. Defect S3-D1.",
-    "status": "Fail",
+    "actual": "API 400 VALIDATION_ERROR; nothing saved; under Title: \"String must contain at least 2 character(s)\"; under Application Deadline: \"Deadline must be today or later.\"; no message on valid fields; the Title message clears when the field is edited=true. S3-D1 fixed.",
+    "status": "Pass",
     "shot": "TC-ADM-01-invalid.png",
-    "at": "2026-11-06T16:18:31.254Z"
+    "at": "2026-11-06T16:33:40.629Z"
   },
   {
     "phase": "admin",
@@ -730,14 +730,14 @@
     "at": "2026-11-06T15:47:27.013Z"
   },
   {
-    "phase": "recheck",
+    "phase": "admfix",
     "tc": "TC-ADM-02",
-    "step": "Steps 3-4: server validation error shown on the Manage Tests and Manage Questions forms",
-    "expected": "400 VALIDATION_ERROR with field messages",
-    "actual": "Manage Tests: verified in a component test with the API mocked to return VALIDATION_ERROR with a title detail: the summary \"Please correct the highlighted fields.\" is shown, the field message is not, 0 field errors. Manage Questions: the same code path (no field errors are passed to its form fields), confirmed by code inspection. Invalid data is rejected by the API (step 3-4 API check above). Defect S3-D1.",
-    "status": "Fail",
-    "shot": "",
-    "at": "2026-11-06T16:30:00.000Z"
+    "step": "Steps 3-4: invalid input on the Manage Tests and Manage Questions forms",
+    "expected": "Rejected with a message under each invalid field",
+    "actual": "Manage Tests, blank title and category: \"Test title is required.\" / \"Category is required.\" under the fields. Manage Questions, blank option: \"Provide 2 to 6 options, none of them empty.\" under the options, option inputs marked invalid; nothing saved (0 questions). Server-detail messages on these two forms are covered by component tests (ManageTestsPage, ManageQuestionsPage). S3-D1 fixed.",
+    "status": "Pass",
+    "shot": "TC-ADM-02-invalid-test.png",
+    "at": "2026-11-06T16:33:42.340Z"
   },
   {
     "phase": "admin",
