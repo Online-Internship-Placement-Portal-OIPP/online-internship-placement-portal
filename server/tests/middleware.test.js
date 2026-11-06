@@ -357,3 +357,39 @@ describe('S0-04 security headers and request logging', () => {
   });
 
 });
+
+// --------------------------------------------------
+// S3-03: TC-SEC-01 tokens signed with the real secret but with invalid contents
+// --------------------------------------------------
+
+describe('TC-SEC-01 authentication middleware: correctly signed tokens with invalid contents', () => {
+  function signedToken(payload) {
+    return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: 3600 });
+  }
+
+  test('rejects a token whose sub is not a valid user id', async () => {
+    const response = await request(app)
+      .get('/protected')
+      .set('Authorization', `Bearer ${signedToken({ sub: 'not-an-id', role: 'student' })}`);
+
+    expectErrorResponse(response, 401, 'UNAUTHORIZED');
+  });
+
+  test('rejects a token without a sub', async () => {
+    const response = await request(app)
+      .get('/protected')
+      .set('Authorization', `Bearer ${signedToken({ role: 'student' })}`);
+
+    expectErrorResponse(response, 401, 'UNAUTHORIZED');
+  });
+
+  test('rejects a token with an unknown role', async () => {
+    const student = await createStudent();
+
+    const response = await request(app)
+      .get('/protected')
+      .set('Authorization', `Bearer ${signedToken({ sub: String(student._id), role: 'superuser' })}`);
+
+    expectErrorResponse(response, 401, 'UNAUTHORIZED');
+  });
+});

@@ -1,0 +1,842 @@
+[
+  {
+    "phase": "ui",
+    "tc": "TC-AUTH-01",
+    "step": "Steps 1-3: register with valid details",
+    "expected": "Account created; redirected to /login with a success message",
+    "actual": "Redirected to /login; alert \"Registration successful! Please sign in with your credentials.\"; stored { email: 'sv.student.1793979979420@oipp.test', role: 'student' }",
+    "status": "Pass",
+    "shot": "TC-AUTH-01-registered.png",
+    "at": "2026-11-06T15:46:20.216Z"
+  },
+  {
+    "phase": "recheck",
+    "tc": "TC-AUTH-01",
+    "step": "Step 4: submit the empty form",
+    "expected": "A message under each field; no request sent",
+    "actual": "Full Name: \"Full name is required\"; Email: \"Email address is required\"; Password: \"Password is required (min 8 characters)\"",
+    "status": "Pass",
+    "shot": "TC-AUTH-01-empty.png",
+    "at": "2026-11-06T16:18:29.001Z"
+  },
+  {
+    "phase": "recheck",
+    "tc": "TC-AUTH-01",
+    "step": "Step 4: password \"short\" (under 8 characters)",
+    "expected": "Message under Password; no request sent",
+    "actual": "Password: \"Password must be at least 8 characters\"",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T16:18:29.059Z"
+  },
+  {
+    "phase": "recheck",
+    "tc": "TC-AUTH-01",
+    "step": "Step 4: name \"A\" and email \"abc\" (checked by the server)",
+    "expected": "400 VALIDATION_ERROR shown under Full Name and Email",
+    "actual": "Full Name: \"Name must be at least 2 characters.\"; Email: \"A valid email address is required.\"; still on /register",
+    "status": "Pass",
+    "shot": "TC-AUTH-01-invalid.png",
+    "at": "2026-11-06T16:18:29.186Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-AUTH-01",
+    "step": "Step 4 (API): name \"A\", email \"abc\", 7- and 73-character passwords",
+    "expected": "400 VALIDATION_ERROR with field details",
+    "actual": "400 VALIDATION_ERROR [name]; 400 VALIDATION_ERROR [email]; 400 VALIDATION_ERROR [password]; 400 VALIDATION_ERROR [password]",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:46:20.371Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-AUTH-01",
+    "step": "Step 5: register the same email in different case",
+    "expected": "409 EMAIL_EXISTS shown",
+    "actual": "Message \"An account with this email already exists.\" shown",
+    "status": "Pass",
+    "shot": "TC-AUTH-01-duplicate.png",
+    "at": "2026-11-06T15:46:20.517Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-AUTH-01",
+    "step": "Step 6: POST /register with role \"admin\"",
+    "expected": "Rejected or created as student; never admin",
+    "actual": "400 VALIDATION_ERROR; admin users with that email: 0",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:46:20.795Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-AUTH-02",
+    "step": "Steps 1-2: student login",
+    "expected": "Lands on /dashboard; session stored in sessionStorage (oipp_auth)",
+    "actual": "URL /dashboard; oipp_auth { token, user: { name: Ravi M, role: student } }",
+    "status": "Pass",
+    "shot": "TC-AUTH-02-student-dashboard.png",
+    "at": "2026-11-06T15:46:20.965Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-AUTH-02",
+    "step": "Step 8: open /login while signed in",
+    "expected": "Redirect to own dashboard",
+    "actual": "Redirected to /dashboard",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:46:20.986Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-AUTH-02",
+    "step": "Step 3: log out",
+    "expected": "Session cleared; back on /login",
+    "actual": "URL /login; oipp_auth=null",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:46:21.026Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-AUTH-02",
+    "step": "Step 4: admin login",
+    "expected": "Lands on /admin",
+    "actual": "Redirected to /admin",
+    "status": "Pass",
+    "shot": "TC-AUTH-02-admin-dashboard.png",
+    "at": "2026-11-06T15:46:21.241Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-AUTH-02",
+    "step": "Step 5: wrong password and unknown email",
+    "expected": "Same 401 INVALID_CREDENTIALS message for both",
+    "actual": "Both show \"Invalid email or password.\"",
+    "status": "Pass",
+    "shot": "TC-AUTH-02-invalid.png",
+    "at": "2026-11-06T15:46:21.517Z"
+  },
+  {
+    "phase": "recheck",
+    "tc": "TC-AUTH-02",
+    "step": "Step 6: submit the empty login form",
+    "expected": "A message under each field",
+    "actual": "Email: \"Email is required\"; Password: \"Password is required\"",
+    "status": "Pass",
+    "shot": "TC-AUTH-02-empty.png",
+    "at": "2026-11-06T16:18:29.313Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-AUTH-02",
+    "step": "Step 7: open /analysis while signed out",
+    "expected": "Redirect to /login",
+    "actual": "Redirected to /login",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:46:21.593Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-AUTH-02",
+    "step": "API: token contents",
+    "expected": "JWT has sub, role and exp = iat + 3600",
+    "actual": "sub present, role=student, exp-iat=3600s",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:46:21.594Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-INT-01",
+    "step": "Steps 1-2: student opens Internships",
+    "expected": "Only open internships, nearest deadline first",
+    "actual": "8 listings, all open, sorted by deadline=true",
+    "status": "Pass",
+    "shot": "TC-INT-01-listings.png",
+    "at": "2026-11-06T15:46:22.315Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-INT-01",
+    "step": "Steps 3-5: pagination, admin view, no token",
+    "expected": "Correct page totals; admin sees closed too; 401 without token",
+    "actual": "page 2: 3 items of 8; admin total 10 (2 closed) vs student 8; no token 401 UNAUTHORIZED",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:46:22.323Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-INT-02",
+    "step": "Step 2: search by title in mixed case",
+    "expected": "Case-insensitive match on title or company",
+    "actual": "\"BACKEND\": 1 result(s); company \"datanest\": 1",
+    "status": "Pass",
+    "shot": "TC-INT-02-search.png",
+    "at": "2026-11-06T15:46:22.422Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-INT-02",
+    "step": "Step 2: search \"c++\" and \"zzzz\"",
+    "expected": "\"c++\" handled safely; \"zzzz\" shows empty state",
+    "actual": "\"c++\": 200 with 0 results; \"zzzz\": \"No internships found\" shown",
+    "status": "Pass",
+    "shot": "TC-INT-02-empty.png",
+    "at": "2026-11-06T15:46:22.538Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-INT-02",
+    "step": "Steps 3-6: category, partial location, combined, clear, dropdowns",
+    "expected": "Filters narrow results; Clear filters resets; dropdowns list distinct values",
+    "actual": "category (any case) 1; location \"beng\" 2; combined 1; meta 6 categories, 6 locations; after Clear filters 8 cards shown",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:46:22.598Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-INT-02",
+    "step": "Step 7: limit=51 and unknown parameter",
+    "expected": "400 VALIDATION_ERROR",
+    "actual": "limit=51: 400 VALIDATION_ERROR; foo=1: 400 VALIDATION_ERROR",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:46:22.601Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-INT-03",
+    "step": "Step 1: open an internship card",
+    "expected": "Full details shown",
+    "actual": "Details page shows \"Machine Learning Intern\", DataNest, description and deadline",
+    "status": "Pass",
+    "shot": "TC-INT-03-details.png",
+    "at": "2026-11-06T15:46:23.203Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-APP-01",
+    "step": "Steps 1-2: click Apply and confirm",
+    "expected": "Application submitted; button shows \"Applied\"; activity recorded",
+    "actual": "hasApplied was false; button now \"Applied\"; INTERNSHIP_APPLIED activities for it: 1",
+    "status": "Pass",
+    "shot": "TC-APP-01-applied.png",
+    "at": "2026-11-06T15:46:23.647Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-INT-03",
+    "step": "Step 2: reopen after applying",
+    "expected": "hasApplied true",
+    "actual": "hasApplied=true",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:46:23.650Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-APP-01",
+    "step": "Steps 3-6: duplicate, closed, unknown, malformed, extra field, admin, no token",
+    "expected": "409, 400, 404, 400, 400, 403, 401",
+    "actual": "duplicate: 409 DUPLICATE_APPLICATION; closed: 400 INVALID_APPLICATION; unknown: 404 INTERNSHIP_NOT_FOUND; malformed: 400 INVALID_APPLICATION; extra: 400 INVALID_APPLICATION; admin: 403 FORBIDDEN; noToken: 401 UNAUTHORIZED",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:46:23.656Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-INT-03",
+    "step": "Step 3: open a past-deadline internship",
+    "expected": "\"Deadline passed\" notice; Apply not available",
+    "actual": "Notice shown; Apply disabled=true; API apply 400 INVALID_APPLICATION",
+    "status": "Pass",
+    "shot": "TC-INT-03-deadline-passed.png",
+    "at": "2026-11-06T15:46:24.522Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-INT-03",
+    "step": "Steps 4-5: malformed id, unknown id, closed internship",
+    "expected": "400; 404 with friendly message; closed 404 for student and 200 for admin",
+    "actual": "malformed 400 INVALID_REQUEST; unknown 404 INTERNSHIP_NOT_FOUND (\"This internship is not available.\" shown); closed: student 404 INTERNSHIP_NOT_FOUND, admin 200",
+    "status": "Pass",
+    "shot": "TC-INT-03-not-available.png",
+    "at": "2026-11-06T15:46:24.600Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-APP-02",
+    "step": "Steps 1-2: open My Applications",
+    "expected": "Only own applications, newest first, all columns",
+    "actual": "Meera sees \"Machine Learning Intern\" with company, location, status and date; Ravi's list (2) newest first=true",
+    "status": "Pass",
+    "shot": "TC-APP-02-applications.png",
+    "at": "2026-11-06T15:46:25.187Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-APP-02",
+    "step": "Step 3: admin deletes an applied internship",
+    "expected": "Test Plan expects \"Internship removed\"",
+    "actual": "Applications before 1, after 0. Deleting through the admin page also deletes its applications (D-06), so \"Internship removed\" cannot appear through the UI.",
+    "status": "Observation",
+    "shot": "",
+    "at": "2026-11-06T15:46:25.194Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-APP-02",
+    "step": "Step 4: student with no applications",
+    "expected": "Empty state with link to Internships",
+    "actual": "\"No applications yet\" with a Browse internships link",
+    "status": "Pass",
+    "shot": "TC-APP-02-empty.png",
+    "at": "2026-11-06T15:46:25.772Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-TEST-01",
+    "step": "Steps 1-2: open Aptitude Tests",
+    "expected": "Tests with questions, sorted by title, with count, marks, duration and attempts",
+    "actual": "3 tests sorted by title=true; all have questionCount, totalMarks, durationMinutes, attempts (Ravi: 0/1/1)",
+    "status": "Pass",
+    "shot": "TC-TEST-01-tests.png",
+    "at": "2026-11-06T15:46:25.873Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-TEST-01",
+    "step": "Step 4: empty test hidden; admin and no-token calls",
+    "expected": "Empty test not listed; 403; 401",
+    "actual": "\"AAA Empty Test\" listed=false; admin 403 FORBIDDEN; no token 401 UNAUTHORIZED",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:46:25.879Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-TEST-02",
+    "step": "Steps 1-2: start a test and read the instructions",
+    "expected": "Instructions screen with description and Begin button",
+    "actual": "Instructions and Begin button shown",
+    "status": "Pass",
+    "shot": "TC-TEST-02-instructions.png",
+    "at": "2026-11-06T15:46:26.477Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-TEST-02",
+    "step": "Steps 3-4: answer, Next, Previous, palette",
+    "expected": "Answer kept when moving back; palette marks answered questions",
+    "actual": "Answer kept=true; palette shows Question 1 (Answered); jump to Q3 ok=true",
+    "status": "Pass",
+    "shot": "TC-TEST-02-question.png",
+    "at": "2026-11-06T15:46:26.707Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-TEST-02",
+    "step": "Steps 5-6: submit with unanswered questions and confirm",
+    "expected": "Dialog shows correct unanswered count; result page opens",
+    "actual": "Dialog: \"Submit Test You have 4 unanswered questions. Are you sure you want to submit? Keep Reviewing Submit Test\" (expected 4 unanswered); redirected to the result page",
+    "status": "Pass",
+    "shot": "TC-TEST-02-confirm.png",
+    "at": "2026-11-06T15:46:26.889Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-TEST-02",
+    "step": "Step 9: unknown, empty and malformed test ids; no answer key",
+    "expected": "404 TEST_NOT_FOUND; 404; 400 INVALID_REQUEST; no correctOption",
+    "actual": "unknown 404 TEST_NOT_FOUND; empty 404 TEST_NOT_FOUND; malformed 400 INVALID_REQUEST; correctOption in response=false",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:46:26.897Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-TEST-01",
+    "step": "Step 3: attempts increase after a submission",
+    "expected": "attempts + 1",
+    "actual": "attempts 0 -> 1",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:46:26.899Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-TEST-03",
+    "step": "Step 1: all-correct, all-wrong, half-correct, two unanswered",
+    "expected": "score/total/percentage match hand calculation",
+    "actual": "all correct 7/7=100%; all wrong 0/7=0%; half 4/7=57% (expected 4/7); two unanswered 5/7=71% (expected 5/7); categoryScores returned; correctOption in responses=false",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:46:26.913Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-TEST-03",
+    "step": "Step 3: invalid answer sets",
+    "expected": "Each 400 INVALID_SUBMISSION; nothing saved",
+    "actual": "unknownId: 400 INVALID_SUBMISSION; duplicateId: 400 INVALID_SUBMISSION; minusOne: 400 INVALID_SUBMISSION; fraction: 400 INVALID_SUBMISSION; outOfRange: 400 INVALID_SUBMISSION; results before/after 5/5",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:46:27.486Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-TEST-03",
+    "step": "Steps 4-5: one Result and one activity per valid submission; retake",
+    "expected": "Counts match submissions",
+    "actual": "Meera: 5 valid submissions (1 UI + 4 API) -> 5 results, 5 TEST_COMPLETED activities; each retake added a new result",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:46:28.031Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-TEST-04",
+    "step": "Steps 1-2: results list and detail",
+    "expected": "Newest first; detail shows percentage, score, date, category bars",
+    "actual": "5 results newest first=true; detail shows percentage, score/total, date, category rows, Retake and View analysis (TC-TEST-04-detail.png)",
+    "status": "Pass",
+    "shot": "TC-TEST-04-results.png",
+    "at": "2026-11-06T15:46:29.196Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-TEST-04",
+    "step": "Step 3: another student opens this result",
+    "expected": "404 RESULT_NOT_FOUND; existence not revealed",
+    "actual": "Asha: 404 RESULT_NOT_FOUND, identical to a non-existent id; page shows \"Result not found.\"",
+    "status": "Pass",
+    "shot": "TC-TEST-04-other-student.png",
+    "at": "2026-11-06T15:46:29.533Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-TEST-04",
+    "step": "Step 5-6: malformed id; no token; admin",
+    "expected": "400; 401; 403 on results and submit",
+    "actual": "malformed 400 INVALID_REQUEST; no token 401 UNAUTHORIZED; admin list 403 FORBIDDEN; admin submit 403 FORBIDDEN",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:46:29.539Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-PROG-02",
+    "step": "Step 1: new student opens Progress",
+    "expected": "All counts 0, 0%, empty state linking to /tests",
+    "actual": "testsAvailable 3, completed 0, attempts 0, applications 0, 0%; empty state with link to /tests",
+    "status": "Pass",
+    "shot": "TC-PROG-02-empty.png",
+    "at": "2026-11-06T15:46:30.456Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-PROG-01",
+    "step": "Steps 1-2: apply, reopen Progress",
+    "expected": "applicationsSubmitted 1; timeline shows the internship",
+    "actual": "applicationsSubmitted 1; timeline shows \"Backend Developer Intern\"",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:46:31.015Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-PROG-01",
+    "step": "Step 3: complete a test, reopen Progress",
+    "expected": "testsCompleted, totalAttempts and completion increase",
+    "actual": "testsCompleted 1, totalAttempts 1, completion 33% of 3 tests",
+    "status": "Pass",
+    "shot": "TC-PROG-01-progress.png",
+    "at": "2026-11-06T15:46:31.613Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-PROG-02",
+    "step": "Step 2: retake a completed test",
+    "expected": "Attempt added; completed unchanged",
+    "actual": "testsCompleted 1, totalAttempts 2; empty test \"AAA Empty Test\" not counted (testsAvailable 3)",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:46:31.620Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-PROG-02",
+    "step": "Step 3: latest 10 activities, newest first",
+    "expected": "At most 10, newest first",
+    "actual": "Meera has 5 activities; 6 shown, newest first=true",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:46:31.622Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-PROG-02",
+    "step": "Step 4: delete a completed test and an applied internship",
+    "expected": "\"Removed item\"; completion never above 100%",
+    "actual": "labels: Removed item; testsCompleted 0, totalAttempts 2, completion 0%",
+    "status": "Pass",
+    "shot": "TC-PROG-02-removed.png",
+    "at": "2026-11-06T15:46:32.215Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-TEST-04",
+    "step": "Step 4: result of a deleted test",
+    "expected": "Result kept; \"Test removed\"; Retake hidden",
+    "actual": "Detail shows \"Test removed\"; Retake links: 0",
+    "status": "Pass",
+    "shot": "TC-TEST-04-test-removed.png",
+    "at": "2026-11-06T15:46:32.825Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-PROG-02",
+    "step": "Step 5 / TC-SEC-04: admin, no token, other student data",
+    "expected": "403; 401; only caller data",
+    "actual": "admin 403 FORBIDDEN; no token 401 UNAUTHORIZED; Asha's progress shows 0 attempts despite other students' activity",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:46:32.829Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-PERF-01",
+    "step": "Step 1: student with no results",
+    "expected": "Message \"Take your first aptitude test...\" with link",
+    "actual": "attempts 0; message \"Take your first aptitude test to see your performance analysis.\" and a Take a test link",
+    "status": "Pass",
+    "shot": "TC-PERF-01-empty.png",
+    "at": "2026-11-06T15:46:33.634Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-PERF-01",
+    "step": "Steps 2-3: Ravi's analysis matches hand calculation",
+    "expected": "Values match stored results",
+    "actual": "attempts 2, average 79% (calc 79), best 86% (calc 86), latest 71% (calc 71); 3 category accuracies match; strongest Logical, weakest Quantitative; trend 2 points",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:46:33.926Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-PERF-01",
+    "step": "Step 4: charts at 1440 px",
+    "expected": "Both charts drawn; no sideways scroll",
+    "actual": "4 charts drawn; horizontal overflow 0px",
+    "status": "Pass",
+    "shot": "TC-PERF-01-analysis-1440.png",
+    "at": "2026-11-06T15:46:34.765Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-PERF-01",
+    "step": "Step 4: charts at 360 px",
+    "expected": "Both charts drawn; no sideways scroll",
+    "actual": "4 charts drawn; horizontal overflow 0px",
+    "status": "Pass",
+    "shot": "TC-PERF-01-analysis-360.png",
+    "at": "2026-11-06T15:46:35.585Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-PERF-01",
+    "step": "Step 5: admin and no token",
+    "expected": "403; 401",
+    "actual": "admin 403 FORBIDDEN; no token 401 UNAUTHORIZED",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:46:35.589Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-UX-01",
+    "step": "Steps 1-2: each dashboard card",
+    "expected": "Opens Internships, My Applications, Aptitude Tests, Progress, Analysis",
+    "actual": "All 5 cards opened the right page: Browse Internships, My Applications, Aptitude Tests, Preparation Progress, Performance Analysis",
+    "status": "Pass",
+    "shot": "TC-UX-01-dashboard.png",
+    "at": "2026-11-06T15:46:39.340Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-UX-01",
+    "step": "Step 3: navbar items and active link",
+    "expected": "8 student items; active link bold and underlined",
+    "actual": "Navbar: Dashboard | Internships | My Applications | Aptitude Tests | Results | Progress | Analysis | Logout; active \"Progress\" weight 700, underline",
+    "status": "Pass",
+    "shot": "TC-UX-01-navbar.png",
+    "at": "2026-11-06T15:46:39.951Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-UX-01",
+    "step": "Step 4: mobile menu at 360 px",
+    "expected": "Menu opens; closes after link click and on Escape",
+    "actual": "opened=true; after link click=false; after Escape=false, focus on \"Toggle navigation menu\"; overflow 0px",
+    "status": "Pass",
+    "shot": "TC-UX-01-mobile-menu.png",
+    "at": "2026-11-06T15:46:40.639Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-UX-01",
+    "step": "Steps 5-6: admin navbar and logout",
+    "expected": "4 admin items; logout clears session",
+    "actual": "Admin navbar: Admin Dashboard | Manage Internships | Manage Tests | Logout; session after logout=null; console errors during walkthrough: 0",
+    "status": "Pass",
+    "shot": "TC-UX-01-admin-navbar.png",
+    "at": "2026-11-06T15:46:41.352Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-SEC-01",
+    "step": "Step 1: signed-out access to protected pages",
+    "expected": "Each redirects to /login",
+    "actual": "/dashboard, /tests, /results, /admin all redirected to /login",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:46:41.622Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-SEC-02",
+    "step": "Step 1: student opens admin pages",
+    "expected": "Redirect to /dashboard",
+    "actual": "/admin, /admin/internships, /admin/tests redirected to /dashboard",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:46:41.796Z"
+  },
+  {
+    "phase": "ui",
+    "tc": "TC-SEC-02",
+    "step": "Step 3 (UI): admin opens student pages",
+    "expected": "Redirect to /admin",
+    "actual": "/tests, /results, /applications redirected to /admin",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:46:41.902Z"
+  },
+  {
+    "phase": "admin",
+    "tc": "TC-ADM-01",
+    "step": "Steps 1-2: add an internship",
+    "expected": "Created; table refreshes with success alert",
+    "actual": "Row \"Data Analyst Intern SV\" added; alert \"Internship created successfully.\n\u00d7\"",
+    "status": "Pass",
+    "shot": "TC-ADM-01-created.png",
+    "at": "2026-11-06T15:47:21.697Z"
+  },
+  {
+    "phase": "admin",
+    "tc": "TC-ADM-01",
+    "step": "Step 3: edit the title",
+    "expected": "Updated row shown",
+    "actual": "Row shows the edited title",
+    "status": "Pass",
+    "shot": "TC-ADM-01-edited.png",
+    "at": "2026-11-06T15:47:21.849Z"
+  },
+  {
+    "phase": "admfix",
+    "tc": "TC-ADM-01",
+    "step": "Step 5: save title \"A\" with a past deadline",
+    "expected": "Rejected; 400 VALIDATION_ERROR with field messages",
+    "actual": "API 400 VALIDATION_ERROR; nothing saved; under Title: \"String must contain at least 2 character(s)\"; under Application Deadline: \"Deadline must be today or later.\"; no message on valid fields; the Title message clears when the field is edited=true. S3-D1 fixed.",
+    "status": "Pass",
+    "shot": "TC-ADM-01-invalid.png",
+    "at": "2026-11-06T16:33:40.629Z"
+  },
+  {
+    "phase": "admin",
+    "tc": "TC-ADM-01",
+    "step": "Step 4: delete an internship that has applications",
+    "expected": "Deleted with its applications after confirming",
+    "actual": "\"Data Science Intern\" deleted after confirm dialog; applications left for it: 0 (had 1)",
+    "status": "Pass",
+    "shot": "TC-ADM-01-delete-confirm.png",
+    "at": "2026-11-06T15:47:23.730Z"
+  },
+  {
+    "phase": "admin",
+    "tc": "TC-ADM-01",
+    "step": "Steps 6-7: malformed/unknown ids, student, no token; admin logging",
+    "expected": "400; 404; 403 FORBIDDEN_ADMIN_ONLY; 401; info log with admin id",
+    "actual": "malformed 400 INVALID_REQUEST; unknown 404 INTERNSHIP_NOT_FOUND; student 403 FORBIDDEN_ADMIN_ONLY; no token 401 UNAUTHORIZED; 5 info log lines with adminId for internship changes",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:47:23.737Z"
+  },
+  {
+    "phase": "admin",
+    "tc": "TC-ADM-02",
+    "step": "Step 1: add a test",
+    "expected": "Created; listed",
+    "actual": "\"Logical Reasoning SV\" listed with 0 questions",
+    "status": "Pass",
+    "shot": "TC-ADM-02-test-created.png",
+    "at": "2026-11-06T15:47:24.442Z"
+  },
+  {
+    "phase": "recheck",
+    "tc": "TC-ADM-02",
+    "step": "Step 2: question shows its correct answer",
+    "expected": "The selected option is marked \"Correct Answer\"",
+    "actual": "1 option marked: \"Yes \u2014 Correct Answer\"",
+    "status": "Pass",
+    "shot": "TC-ADM-02-question.png",
+    "at": "2026-11-06T16:18:31.987Z"
+  },
+  {
+    "phase": "admin",
+    "tc": "TC-ADM-02",
+    "step": "Steps 3-4: invalid correctOption, removing the correct option, missing title, whitespace, unknown field",
+    "expected": "400 VALIDATION_ERROR with field details",
+    "actual": "correctOption 5: 400 VALIDATION_ERROR; options cut below correct option: 400 VALIDATION_ERROR; missing title: 400 VALIDATION_ERROR; whitespace title: 400 VALIDATION_ERROR; unknown field: 400 VALIDATION_ERROR (valid edit to option 4: 200)",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:47:24.643Z"
+  },
+  {
+    "phase": "admin",
+    "tc": "TC-ADM-02",
+    "step": "Step 5: delete the question (UI), then a test with results",
+    "expected": "Question removed; test deleted; student results kept",
+    "actual": "Question deleted via confirm dialog; test \"Mixed Placement Mock Test\" deleted on standalone MongoDB (200); questions left 0; results 1 -> 1",
+    "status": "Pass",
+    "shot": "TC-ADM-02-question-deleted.png",
+    "at": "2026-11-06T15:47:27.001Z"
+  },
+  {
+    "phase": "admin",
+    "tc": "TC-ADM-02",
+    "step": "Step 6: unknown/malformed ids; all 8 endpoints as student and without token",
+    "expected": "404/400; 403 FORBIDDEN_ADMIN_ONLY; 401",
+    "actual": "unknown test 404 TEST_NOT_FOUND; unknown question 404 QUESTION_NOT_FOUND; malformed 400 INVALID_REQUEST; student on 8 endpoints: 403 FORBIDDEN_ADMIN_ONLY; no token: 401",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:47:27.013Z"
+  },
+  {
+    "phase": "admfix",
+    "tc": "TC-ADM-02",
+    "step": "Steps 3-4: invalid input on the Manage Tests and Manage Questions forms",
+    "expected": "Rejected with a message under each invalid field",
+    "actual": "Manage Tests, blank title and category: \"Test title is required.\" / \"Category is required.\" under the fields. Manage Questions, blank option: \"Provide 2 to 6 options, none of them empty.\" under the options, option inputs marked invalid; nothing saved (0 questions). Server-detail messages on these two forms are covered by component tests (ManageTestsPage, ManageQuestionsPage). S3-D1 fixed.",
+    "status": "Pass",
+    "shot": "TC-ADM-02-invalid-test.png",
+    "at": "2026-11-06T16:33:42.340Z"
+  },
+  {
+    "phase": "admin",
+    "tc": "TC-SEC-01",
+    "step": "Steps 2-3: every protected route with no/bad tokens",
+    "expected": "401 UNAUTHORIZED in the error envelope",
+    "actual": "70 of 70 requests (7 token cases x 10 routes) returned 401 UNAUTHORIZED",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:47:27.456Z"
+  },
+  {
+    "phase": "admin",
+    "tc": "TC-SEC-02",
+    "step": "Steps 2-4: student on admin APIs, admin on student APIs, forged role",
+    "expected": "403 FORBIDDEN_ADMIN_ONLY; 403 FORBIDDEN; forged role rejected",
+    "actual": "student->admin: 403 FORBIDDEN_ADMIN_ONLY, 403 FORBIDDEN_ADMIN_ONLY; admin->student: 403 FORBIDDEN, 403 FORBIDDEN; forged admin role (signed with the real secret): 403 FORBIDDEN_ADMIN_ONLY",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:47:27.459Z"
+  },
+  {
+    "phase": "admin",
+    "tc": "TC-SEC-03",
+    "step": "Steps 1-3: stored hash and responses",
+    "expected": "bcrypt hash stored; no password data in responses",
+    "actual": "6 users: all bcrypt $2x$10$ hashes=true, plain text=false; password data in register/login/error responses=false; in server log=false",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:47:27.898Z"
+  },
+  {
+    "phase": "admin",
+    "tc": "TC-SEC-04",
+    "step": "Steps 1-3: cross-student access and studentId in body",
+    "expected": "Own records only; 404; 400 VALIDATION_ERROR and nothing saved",
+    "actual": "shared results between Ravi and Asha: 0; Asha opening Ravi's result: 404 RESULT_NOT_FOUND; Asha's applications 0; submit with Ravi's studentId: 400 VALIDATION_ERROR, Ravi's results 2 -> 2; Asha's analysis attempts 0",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:47:28.488Z"
+  },
+  {
+    "phase": "admin",
+    "tc": "TC-SEC-05",
+    "step": "Steps 1-3: malformed JSON, oversized body, malformed id, unknown field, headers, CORS",
+    "expected": "Safe 400s; no internals; headers set; foreign origin refused",
+    "actual": "malformed JSON 400 INVALID_REQUEST; 110 kb body 400 INVALID_REQUEST; malformed id 400 INVALID_REQUEST; unknown field 400 VALIDATION_ERROR; internals leaked=false; CSP set=true, nosniff=nosniff, X-Powered-By=null; CORS for evil.example -> Access-Control-Allow-Origin http://localhost:5173",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:47:28.492Z"
+  },
+  {
+    "phase": "admin",
+    "tc": "TC-DATA-01",
+    "step": "Steps 1-4: concurrent duplicates, direct duplicate insert, valid/invalid submission, cascade",
+    "expected": "One record; index rejects duplicate; one result; no orphans",
+    "actual": "5 parallel applications -> statuses 201,409,409,409,409, stored 1; direct duplicate insert -> error 11000; valid submit 200, invalid 400 INVALID_SUBMISSION, results stored 1; orphan applications after deleting the internship: 0",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:47:29.736Z"
+  },
+  {
+    "phase": "timer",
+    "tc": "TC-TEST-02",
+    "step": "Step 8: try to leave the page during a test",
+    "expected": "Browser shows a leave-page warning",
+    "actual": "Dialog type \"beforeunload\"; after choosing to stay, still on the test page=true",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:48:55.485Z"
+  },
+  {
+    "phase": "timer",
+    "tc": "TC-TEST-02",
+    "step": "Step 7: let the timer reach 0",
+    "expected": "Test submits automatically and the result opens",
+    "actual": "Auto-submitted 59s after the timer screenshot (1-minute test); result page shows 50%, 1/2 marks (one of two questions answered correctly)",
+    "status": "Pass",
+    "shot": "TC-TEST-02-timer-running.png",
+    "at": "2026-11-06T15:49:54.953Z"
+  },
+  {
+    "phase": "ratelimit",
+    "tc": "TC-SEC-05",
+    "step": "Step 4: 21 login requests from one IP within 15 minutes",
+    "expected": "Requests 1-20 processed; 21st 429 TOO_MANY_REQUESTS",
+    "actual": "requests 1-20: 401 INVALID_CREDENTIALS; request 21: 429 TOO_MANY_REQUESTS",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:50:29.108Z"
+  },
+  {
+    "phase": "ratelimit",
+    "tc": "TC-SEC-05",
+    "step": "Step 4: register after the limit",
+    "expected": "Also limited (shared limiter)",
+    "actual": "register 429 TOO_MANY_REQUESTS with the standard error envelope",
+    "status": "Pass",
+    "shot": "",
+    "at": "2026-11-06T15:50:29.109Z"
+  }
+]

@@ -191,3 +191,46 @@ describe('S2-03 ManageTestsPage', () => {
   expect(adminApi.createTest).not.toHaveBeenCalled();
 });
 });
+
+// S3-04: field-level validation messages (defect S3-D1, CLAUDE.md §9).
+describe('TC-ADM-02 ManageTestsPage - field-level validation messages', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    adminApi.getAdminTests.mockResolvedValue({ success: true, data: [] });
+  });
+
+  test('shows each server VALIDATION_ERROR message under its field', async () => {
+    adminApi.createTest.mockRejectedValue({
+      code: 'VALIDATION_ERROR',
+      message: 'Please correct the highlighted fields.',
+      details: [
+        { field: 'title', message: 'Title must be at least 2 characters.' },
+        { field: 'durationMinutes', message: 'Duration must be at most 180 minutes.' },
+      ],
+    });
+    renderPage();
+
+    fireEvent.click(await screen.findByRole('button', { name: /Add Aptitude Test/i }));
+    fireEvent.change(screen.getByLabelText(/Test Title/i), { target: { value: 'Valid Title' } });
+    fireEvent.change(screen.getByLabelText(/Category/i), { target: { value: 'Logical' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Create Test' }));
+
+    expect(await screen.findByText('Title must be at least 2 characters.')).toBeInTheDocument();
+    expect(screen.getByText('Duration must be at most 180 minutes.')).toBeInTheDocument();
+    expect(screen.getByLabelText(/Test Title/i)).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByLabelText(/Category/i)).toHaveAttribute('aria-invalid', 'false');
+  });
+
+  test('marks blank title and category fields before sending', async () => {
+    renderPage();
+
+    fireEvent.click(await screen.findByRole('button', { name: /Add Aptitude Test/i }));
+    fireEvent.change(screen.getByLabelText(/Test Title/i), { target: { value: '   ' } });
+    fireEvent.change(screen.getByLabelText(/Category/i), { target: { value: '   ' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Create Test' }));
+
+    expect(await screen.findByText('Test title is required.')).toBeInTheDocument();
+    expect(screen.getByText('Category is required.')).toBeInTheDocument();
+    expect(adminApi.createTest).not.toHaveBeenCalled();
+  });
+});

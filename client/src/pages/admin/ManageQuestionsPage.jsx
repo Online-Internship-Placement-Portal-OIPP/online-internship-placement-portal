@@ -2,6 +2,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { adminApi } from '../../api/adminApi';
+import { toFieldErrors } from '../../api/client';
 import Alert from '../../components/Alert';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import FormField from '../../components/FormField';
@@ -32,6 +33,8 @@ export const ManageQuestionsPage = () => {
   const [form, setForm] = useState({ ...emptyForm });
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [alert, setAlert] = useState(null);
+  // Field-level messages from validation (CLAUDE.md §9).
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const loadQuestions = useCallback(async () => {
     setLoading(true);
@@ -60,6 +63,7 @@ export const ManageQuestionsPage = () => {
       options: [...emptyForm.options],
       category: test?.category || '',
     });
+    setFieldErrors({});
     setFormOpen(true);
     setAlert(null);
   };
@@ -73,6 +77,7 @@ export const ManageQuestionsPage = () => {
       category: question.category || '',
       marks: question.marks ?? 1,
     });
+    setFieldErrors({});
     setFormOpen(true);
     setAlert(null);
   };
@@ -83,6 +88,8 @@ export const ManageQuestionsPage = () => {
       ...previous,
       [name]: value,
     }));
+    // Clear the message for a field as soon as the admin edits it.
+    setFieldErrors((previous) => ({ ...previous, [name]: undefined }));
   };
 
   const handleOptionChange = (index, value) => {
@@ -92,6 +99,7 @@ export const ManageQuestionsPage = () => {
         optionIndex === index ? value : option
       ),
     }));
+    setFieldErrors((previous) => ({ ...previous, options: undefined }));
   };
 
   const addOption = () => {
@@ -139,6 +147,10 @@ export const ManageQuestionsPage = () => {
       marks: Number(form.marks),
     };
     if (!payload.text || !payload.category) {
+      setFieldErrors({
+        text: payload.text ? undefined : 'Question text is required.',
+        category: payload.category ? undefined : 'Category is required.',
+      });
       setAlert({
         type: 'error',
         message: 'Question text and category cannot be empty or contain only spaces.',
@@ -154,6 +166,9 @@ export const ManageQuestionsPage = () => {
       payload.correctOption < 0 ||
       payload.correctOption >= payload.options.length
     ) {
+      setFieldErrors({
+        options: 'Provide 2 to 6 options, none of them empty.',
+      });
       setAlert({
         type: 'error',
         message: 'Provide 2 to 6 non-empty options and select a valid correct answer.',
@@ -163,6 +178,7 @@ export const ManageQuestionsPage = () => {
 
     setSaving(true);
     setAlert(null);
+    setFieldErrors({});
 
     try {
       if (editingId) {
@@ -184,6 +200,7 @@ export const ManageQuestionsPage = () => {
       await loadQuestions();
     } catch (error) {
       setAlert({ type: 'error', message: getErrorMessage(error) });
+      setFieldErrors(toFieldErrors(error?.details));
     } finally {
       setSaving(false);
     }
@@ -255,7 +272,7 @@ export const ManageQuestionsPage = () => {
           <h2>{editingId ? 'Edit Question' : 'Add Question'}</h2>
 
           <form onSubmit={handleSubmit}>
-            <FormField id="question-text" label="Question" required>
+            <FormField id="question-text" label="Question" required error={fieldErrors.text}>
               <textarea
                 id="question-text"
                 className="form-input"
@@ -298,6 +315,8 @@ export const ManageQuestionsPage = () => {
                     handleOptionChange(index, event.target.value)
                   }
                   required
+                  aria-invalid={Boolean(fieldErrors.options)}
+                  aria-describedby={fieldErrors.options ? 'question-options-error' : undefined}
                   disabled={saving}
                   style={{ flex: 1 }}
                 />
@@ -324,7 +343,13 @@ export const ManageQuestionsPage = () => {
               + Add Option
             </button>
 
-            <FormField id="correct-option" label="Correct Answer" required>
+            {fieldErrors.options && (
+              <div id="question-options-error" className="form-error" role="alert" style={{ marginBottom: '16px' }}>
+                {fieldErrors.options}
+              </div>
+            )}
+
+            <FormField id="correct-option" label="Correct Answer" required error={fieldErrors.correctOption}>
               <select
                 id="correct-option"
                 className="form-input"
@@ -348,6 +373,7 @@ export const ManageQuestionsPage = () => {
               name="category"
               value={form.category}
               onChange={handleChange}
+              error={fieldErrors.category}
               required
               disabled={saving}
             />
@@ -362,6 +388,7 @@ export const ManageQuestionsPage = () => {
               step={1}
               value={form.marks}
               onChange={handleChange}
+              error={fieldErrors.marks}
               required
               disabled={saving}
             />

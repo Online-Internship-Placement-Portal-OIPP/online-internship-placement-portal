@@ -163,3 +163,93 @@ describe('ManageInternshipsPage - Admin Internship Deletion', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });
+
+// S3-03: create and edit forms (TC-ADM-01).
+describe('TC-ADM-01 ManageInternshipsPage - create and edit', () => {
+  const listing = {
+    id: 'int-1',
+    title: 'Backend Developer Intern',
+    company: 'TechCorp',
+    location: 'Bengaluru',
+    deadline: '2027-01-01T00:00:00.000Z',
+    status: 'open',
+  };
+  const form = {
+    title: 'Data Analyst Intern',
+    company: 'Acme Analytics',
+    location: 'Pune',
+    category: 'Data Science',
+    description: 'Analyse placement data with the analytics team.',
+    deadline: '2027-03-01',
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    internshipsApi.listInternships.mockResolvedValue({ data: { items: [listing], total: 1, page: 1, limit: 10 } });
+  });
+
+  function fill(values) {
+    const labels = { title: 'Title', company: 'Company', location: 'Location', category: 'Category', description: 'Description', deadline: 'Application Deadline' };
+    Object.entries(values).forEach(([key, value]) => {
+      fireEvent.change(screen.getByLabelText(new RegExp(`^${labels[key]}`)), { target: { value } });
+    });
+  }
+
+  it('creates an internship and shows a success message', async () => {
+    adminApi.createInternship.mockResolvedValue({ success: true });
+    render(<MemoryRouter><ManageInternshipsPage /></MemoryRouter>);
+    await screen.findByText('Backend Developer Intern');
+
+    fireEvent.click(screen.getByRole('button', { name: '+ Add Internship' }));
+    fill(form);
+    fireEvent.click(screen.getByRole('button', { name: 'Create Internship' }));
+
+    await waitFor(() => expect(adminApi.createInternship).toHaveBeenCalledWith({ ...form, status: 'open' }));
+    expect(await screen.findByText('Internship created successfully.')).toBeInTheDocument();
+    expect(internshipsApi.listInternships).toHaveBeenCalledTimes(2);
+  });
+
+  it('loads an internship into the edit form and saves the change', async () => {
+    internshipsApi.getInternship.mockResolvedValue({
+      data: { ...listing, category: 'Software Development', description: 'Build REST APIs with the backend team.' },
+    });
+    adminApi.updateInternship.mockResolvedValue({ success: true });
+    render(<MemoryRouter><ManageInternshipsPage /></MemoryRouter>);
+    await screen.findByText('Backend Developer Intern');
+
+    fireEvent.click(screen.getByRole('button', { name: /edit/i }));
+    expect(await screen.findByDisplayValue('Build REST APIs with the backend team.')).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Application Deadline/)).toHaveValue('2027-01-01');
+
+    fill({ title: 'Senior Backend Intern' });
+    fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }));
+
+    await waitFor(() => expect(adminApi.updateInternship).toHaveBeenCalledWith('int-1', expect.objectContaining({ title: 'Senior Backend Intern', company: 'TechCorp' })));
+    expect(await screen.findByText('Internship updated successfully.')).toBeInTheDocument();
+  });
+
+  it('keeps the form open and shows the API message when saving fails', async () => {
+    adminApi.createInternship.mockRejectedValue({
+      code: 'VALIDATION_ERROR',
+      message: 'Please correct the highlighted fields.',
+      details: [{ field: 'deadline', message: 'Deadline must be today or later.' }],
+    });
+    render(<MemoryRouter><ManageInternshipsPage /></MemoryRouter>);
+    await screen.findByText('Backend Developer Intern');
+
+    fireEvent.click(screen.getByRole('button', { name: '+ Add Internship' }));
+    fill({ ...form, deadline: '2020-01-01' });
+    fireEvent.click(screen.getByRole('button', { name: 'Create Internship' }));
+
+    expect(await screen.findByText('Please correct the highlighted fields.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Create Internship' })).toBeInTheDocument();
+    expect(screen.queryByText('Internship created successfully.')).not.toBeInTheDocument();
+
+    // S3-D1: the message from details is shown under its field and cleared on edit.
+    expect(screen.getByText('Deadline must be today or later.')).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Application Deadline/)).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByLabelText(/^Title/)).toHaveAttribute('aria-invalid', 'false');
+    fill({ deadline: '2027-03-01' });
+    expect(screen.queryByText('Deadline must be today or later.')).not.toBeInTheDocument();
+  });
+});

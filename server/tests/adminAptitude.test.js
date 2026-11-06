@@ -392,3 +392,59 @@ describe('TC-ADM-02 Admin Aptitude Management', () => {
     }
   });
 });
+// S3-03: error paths of the admin write endpoints for a test or question
+// that does not exist (CLAUDE.md §6: 404 TEST_NOT_FOUND / QUESTION_NOT_FOUND).
+describe('TC-ADM-02 Admin Aptitude Management: missing resources on write endpoints', () => {
+  const missingId = '507f1f77bcf86cd799439011';
+  let adminHeader;
+
+  beforeEach(async () => {
+    adminHeader = authHeader(await createAdmin());
+  });
+
+  test('updating a missing test returns 404 TEST_NOT_FOUND', async () => {
+    const res = await request(app)
+      .put(`/api/admin/tests/${missingId}`)
+      .set(adminHeader)
+      .send({ title: 'Updated Title' });
+
+    expect(res.status).toBe(404);
+    expect(res.body.error.code).toBe('TEST_NOT_FOUND');
+  });
+
+  test('deleting a missing test returns 404 TEST_NOT_FOUND', async () => {
+    const res = await request(app)
+      .delete(`/api/admin/tests/${missingId}`)
+      .set(adminHeader);
+
+    expect(res.status).toBe(404);
+    expect(res.body.error.code).toBe('TEST_NOT_FOUND');
+  });
+
+  test('adding a question to a missing test returns 404 TEST_NOT_FOUND and saves nothing', async () => {
+    const { Question } = require('../src/models');
+
+    const res = await request(app)
+      .post(`/api/admin/tests/${missingId}/questions`)
+      .set(adminHeader)
+      .send({
+        text: 'Which option is correct?',
+        options: ['A', 'B'],
+        correctOption: 0,
+        category: 'Logical',
+      });
+
+    expect(res.status).toBe(404);
+    expect(res.body.error.code).toBe('TEST_NOT_FOUND');
+    expect(await Question.countDocuments({ testId: missingId })).toBe(0);
+  });
+
+  test('deleting a missing question returns 404 QUESTION_NOT_FOUND', async () => {
+    const res = await request(app)
+      .delete(`/api/admin/questions/${missingId}`)
+      .set(adminHeader);
+
+    expect(res.status).toBe(404);
+    expect(res.body.error.code).toBe('QUESTION_NOT_FOUND');
+  });
+});

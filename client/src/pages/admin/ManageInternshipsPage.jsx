@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { internshipsApi } from '../../api/internshipsApi';
 import { adminApi } from '../../api/adminApi';
+import { toFieldErrors } from '../../api/client';
 import Alert from '../../components/Alert';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import FormField from '../../components/FormField';
@@ -33,6 +34,8 @@ export const ManageInternshipsPage = () => {
   const [form, setForm] = useState({ ...emptyForm });
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [alert, setAlert] = useState(null);
+  // Field-level messages from a VALIDATION_ERROR (CLAUDE.md §9).
+  const [fieldErrors, setFieldErrors] = useState({});
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -62,6 +65,7 @@ export const ManageInternshipsPage = () => {
   const openCreateForm = () => {
     setEditingId(null);
     setForm({ ...emptyForm });
+    setFieldErrors({});
     setFormOpen(true);
     setAlert(null);
   };
@@ -85,6 +89,7 @@ export const ManageInternshipsPage = () => {
           : '',
         status: details.status || 'open',
       });
+      setFieldErrors({});
       setFormOpen(true);
     } catch (error) {
       setAlert({ type: 'error', message: getErrorMessage(error) });
@@ -97,6 +102,8 @@ export const ManageInternshipsPage = () => {
       ...previous,
       [name]: value,
     }));
+    // Clear the message for a field as soon as the admin edits it.
+    setFieldErrors((previous) => ({ ...previous, [name]: undefined }));
   };
 
   const handleSubmit = async (event) => {
@@ -105,6 +112,7 @@ export const ManageInternshipsPage = () => {
 
     setSaving(true);
     setAlert(null);
+    setFieldErrors({});
 
     try {
       if (editingId) {
@@ -127,6 +135,7 @@ export const ManageInternshipsPage = () => {
       await loadInternships();
     } catch (error) {
       setAlert({ type: 'error', message: getErrorMessage(error) });
+      setFieldErrors(toFieldErrors(error?.details));
     } finally {
       setSaving(false);
     }
@@ -209,11 +218,12 @@ export const ManageInternshipsPage = () => {
                 name={name}
                 value={form[name]}
                 onChange={handleChange}
+                error={fieldErrors[name]}
                 disabled={saving}
               />
             ))}
 
-            <FormField id="description" label="Description" required>
+            <FormField id="description" label="Description" required error={fieldErrors.description}>
               <textarea
                 className="form-input"
                 name="description"
@@ -233,11 +243,12 @@ export const ManageInternshipsPage = () => {
               name="deadline"
               value={form.deadline}
               onChange={handleChange}
+              error={fieldErrors.deadline}
               required
               disabled={saving}
             />
 
-            <FormField id="status" label="Status" required>
+            <FormField id="status" label="Status" required error={fieldErrors.status}>
               <select
                 className="form-input"
                 name="status"

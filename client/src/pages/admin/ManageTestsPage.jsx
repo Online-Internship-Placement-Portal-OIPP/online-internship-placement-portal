@@ -2,6 +2,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { adminApi } from '../../api/adminApi';
+import { toFieldErrors } from '../../api/client';
 import Alert from '../../components/Alert';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import FormField from '../../components/FormField';
@@ -28,6 +29,8 @@ export const ManageTestsPage = () => {
   const [form, setForm] = useState({ ...emptyForm });
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [alert, setAlert] = useState(null);
+  // Field-level messages from validation (CLAUDE.md §9).
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const loadTests = useCallback(async () => {
     setLoading(true);
@@ -49,6 +52,7 @@ export const ManageTestsPage = () => {
   const openCreateForm = () => {
     setEditingId(null);
     setForm({ ...emptyForm });
+    setFieldErrors({});
     setFormOpen(true);
     setAlert(null);
   };
@@ -66,6 +70,7 @@ export const ManageTestsPage = () => {
         description: details.description || '',
         durationMinutes: details.durationMinutes || 20,
       });
+      setFieldErrors({});
       setFormOpen(true);
     } catch (error) {
       setAlert({ type: 'error', message: getErrorMessage(error) });
@@ -78,6 +83,8 @@ export const ManageTestsPage = () => {
       ...previous,
       [name]: value,
     }));
+    // Clear the message for a field as soon as the admin edits it.
+    setFieldErrors((previous) => ({ ...previous, [name]: undefined }));
   };
 
   const handleSubmit = async (event) => {
@@ -85,6 +92,10 @@ export const ManageTestsPage = () => {
     if (saving) return;
 
     if (!form.title.trim() || !form.category.trim()) {
+      setFieldErrors({
+        title: form.title.trim() ? undefined : 'Test title is required.',
+        category: form.category.trim() ? undefined : 'Category is required.',
+      });
       setAlert({
         type: 'error',
         message: 'Test title and category cannot be empty or contain only spaces.',
@@ -94,6 +105,7 @@ export const ManageTestsPage = () => {
 
     setSaving(true);
     setAlert(null);
+    setFieldErrors({});
 
     try {
       const payload = {
@@ -123,6 +135,7 @@ export const ManageTestsPage = () => {
       await loadTests();
     } catch (error) {
       setAlert({ type: 'error', message: getErrorMessage(error) });
+      setFieldErrors(toFieldErrors(error?.details));
     } finally {
       setSaving(false);
     }
@@ -200,6 +213,7 @@ export const ManageTestsPage = () => {
               maxLength={120}
               value={form.title}
               onChange={handleChange}
+              error={fieldErrors.title}
               disabled={saving}
             />
 
@@ -210,10 +224,11 @@ export const ManageTestsPage = () => {
               required
               value={form.category}
               onChange={handleChange}
+              error={fieldErrors.category}
               disabled={saving}
             />
 
-            <FormField id="test-description" label="Description">
+            <FormField id="test-description" label="Description" error={fieldErrors.description}>
               <textarea
                 id="test-description"
                 className="form-input"
@@ -237,6 +252,7 @@ export const ManageTestsPage = () => {
               required
               value={form.durationMinutes}
               onChange={handleChange}
+              error={fieldErrors.durationMinutes}
               disabled={saving}
             />
 

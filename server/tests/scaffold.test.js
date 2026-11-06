@@ -231,3 +231,24 @@ describe('Scaffold and Foundation Tests', () => {
   });
 });
 
+
+// S3-03: the health check reports the database as down when it is not connected (NFR-01).
+describe('NFR-01 / TC-HEALTH-01 · Health check when the database is down', () => {
+  it('returns { status: "ok", db: "down" } when the database is not connected', async () => {
+    // Load a separate copy of the app in which the database check reports "not connected".
+    let downApp;
+    jest.isolateModules(() => {
+      jest.doMock('../src/config/db', () => ({
+        ...jest.requireActual('../src/config/db'),
+        isDbUp: () => false,
+      }));
+      downApp = require('../src/app');
+    });
+    jest.dontMock('../src/config/db');
+
+    const res = await request(downApp).get('/api/health');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ success: true, data: { status: 'ok', db: 'down' } });
+  });
+});
