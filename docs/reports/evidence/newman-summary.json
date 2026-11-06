@@ -1,0 +1,379 @@
+{
+  "collection": "docs/api/OIPP.postman_collection.json",
+  "runner": "Newman 6.2.1",
+  "executedAt": "2026-11-06T15:36:46.273Z",
+  "stats": {
+    "requests": {
+      "total": 36,
+      "pending": 0,
+      "failed": 0
+    },
+    "assertions": {
+      "total": 47,
+      "pending": 0,
+      "failed": 0
+    }
+  },
+  "requests": [
+    {
+      "folder": "",
+      "name": "Health check",
+      "method": "GET",
+      "path": "/api/health",
+      "status": 200,
+      "ms": 17,
+      "assertions": 1,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "Register student",
+      "method": "POST",
+      "path": "/api/register",
+      "status": 201,
+      "ms": 80,
+      "assertions": 1,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "Login as student (Ravi)",
+      "method": "POST",
+      "path": "/api/login",
+      "status": 200,
+      "ms": 55,
+      "assertions": 2,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "Login as second student (Asha)",
+      "method": "POST",
+      "path": "/api/login",
+      "status": 200,
+      "ms": 53,
+      "assertions": 1,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "Login as admin",
+      "method": "POST",
+      "path": "/api/login",
+      "status": 200,
+      "ms": 52,
+      "assertions": 1,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "Login with wrong password",
+      "method": "POST",
+      "path": "/api/login",
+      "status": 401,
+      "ms": 52,
+      "assertions": 2,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "Create internship",
+      "method": "POST",
+      "path": "/api/admin/internships",
+      "status": 201,
+      "ms": 6,
+      "assertions": 1,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "Update internship",
+      "method": "PUT",
+      "path": "/api/admin/internships/:id",
+      "status": 200,
+      "ms": 7,
+      "assertions": 1,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "List internships (search + filters)",
+      "method": "GET",
+      "path": "/api/internships",
+      "status": 200,
+      "ms": 6,
+      "assertions": 1,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "Filter options (meta)",
+      "method": "GET",
+      "path": "/api/internships/meta",
+      "status": 200,
+      "ms": 8,
+      "assertions": 1,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "Internship details",
+      "method": "GET",
+      "path": "/api/internships/:id",
+      "status": 200,
+      "ms": 3,
+      "assertions": 1,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "Apply for internship",
+      "method": "POST",
+      "path": "/api/applications",
+      "status": 201,
+      "ms": 3,
+      "assertions": 1,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "Apply again (duplicate)",
+      "method": "POST",
+      "path": "/api/applications",
+      "status": 409,
+      "ms": 2,
+      "assertions": 2,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "My applications",
+      "method": "GET",
+      "path": "/api/applications",
+      "status": 200,
+      "ms": 2,
+      "assertions": 1,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "List tests (admin)",
+      "method": "GET",
+      "path": "/api/admin/tests",
+      "status": 200,
+      "ms": 3,
+      "assertions": 1,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "Create test",
+      "method": "POST",
+      "path": "/api/admin/tests",
+      "status": 201,
+      "ms": 6,
+      "assertions": 1,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "Update test",
+      "method": "PUT",
+      "path": "/api/admin/tests/:id",
+      "status": 200,
+      "ms": 2,
+      "assertions": 1,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "Add question",
+      "method": "POST",
+      "path": "/api/admin/tests/:id/questions",
+      "status": 201,
+      "ms": 4,
+      "assertions": 1,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "Update question",
+      "method": "PUT",
+      "path": "/api/admin/questions/:id",
+      "status": 200,
+      "ms": 3,
+      "assertions": 1,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "Get test with answers (admin)",
+      "method": "GET",
+      "path": "/api/admin/tests/:id",
+      "status": 200,
+      "ms": 2,
+      "assertions": 1,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "List tests",
+      "method": "GET",
+      "path": "/api/tests",
+      "status": 200,
+      "ms": 4,
+      "assertions": 1,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "Open test for attempt",
+      "method": "GET",
+      "path": "/api/tests/:id",
+      "status": 200,
+      "ms": 2,
+      "assertions": 2,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "Submit answers",
+      "method": "POST",
+      "path": "/api/tests/:id/submit",
+      "status": 200,
+      "ms": 5,
+      "assertions": 2,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "My results",
+      "method": "GET",
+      "path": "/api/results",
+      "status": 200,
+      "ms": 3,
+      "assertions": 1,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "Result detail",
+      "method": "GET",
+      "path": "/api/results/:id",
+      "status": 200,
+      "ms": 2,
+      "assertions": 1,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "My progress",
+      "method": "GET",
+      "path": "/api/progress",
+      "status": 200,
+      "ms": 3,
+      "assertions": 0,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "My performance analysis",
+      "method": "GET",
+      "path": "/api/analysis",
+      "status": 200,
+      "ms": 3,
+      "assertions": 0,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "TC-SEC-01 no token",
+      "method": "GET",
+      "path": "/api/results",
+      "status": 401,
+      "ms": 1,
+      "assertions": 2,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "TC-SEC-01 tampered token",
+      "method": "GET",
+      "path": "/api/tests",
+      "status": 401,
+      "ms": 0,
+      "assertions": 2,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "TC-SEC-02 student calls admin endpoint",
+      "method": "POST",
+      "path": "/api/admin/tests",
+      "status": 403,
+      "ms": 2,
+      "assertions": 2,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "TC-SEC-03 login response has no password data",
+      "method": "POST",
+      "path": "/api/login",
+      "status": 200,
+      "ms": 63,
+      "assertions": 3,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "TC-SEC-04 other student's result",
+      "method": "GET",
+      "path": "/api/results/:id",
+      "status": 404,
+      "ms": 2,
+      "assertions": 2,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "TC-SEC-05 malformed JSON",
+      "method": "POST",
+      "path": "/api/tests/:id/submit",
+      "status": 400,
+      "ms": 1,
+      "assertions": 3,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "Delete question",
+      "method": "DELETE",
+      "path": "/api/admin/questions/:id",
+      "status": 200,
+      "ms": 3,
+      "assertions": 1,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "Delete test",
+      "method": "DELETE",
+      "path": "/api/admin/tests/:id",
+      "status": 200,
+      "ms": 5,
+      "assertions": 1,
+      "failed": 0
+    },
+    {
+      "folder": "",
+      "name": "Delete internship",
+      "method": "DELETE",
+      "path": "/api/admin/internships/:id",
+      "status": 200,
+      "ms": 2,
+      "assertions": 1,
+      "failed": 0
+    }
+  ]
+}
