@@ -708,3 +708,36 @@ async function setupScoringFixture2() {
   });
   return { test, questions };
 }
+
+// S3-03: submitting answers to a test that does not exist or has no questions
+// (CLAUDE.md §6: 404 TEST_NOT_FOUND, and no Result or Activity is written).
+describe('TC-TEST-03 additional: submitting to a missing or empty test', () => {
+  test('submitting to an unknown test returns 404 TEST_NOT_FOUND and writes nothing', async () => {
+    const student = await createStudent();
+
+    const res = await request(app)
+      .post('/api/tests/507f1f77bcf86cd799439011/submit')
+      .set(authHeader(student))
+      .send({ answers: [] });
+
+    expect(res.status).toBe(404);
+    expect(res.body.error.code).toBe('TEST_NOT_FOUND');
+    expect(await Result.countDocuments({ studentId: student._id })).toBe(0);
+    expect(await Activity.countDocuments({ studentId: student._id })).toBe(0);
+  });
+
+  test('submitting to a test with no questions returns 404 TEST_NOT_FOUND and writes nothing', async () => {
+    const student = await createStudent();
+    const emptyTest = await Test.create({ title: 'Empty Test', category: 'Logical', durationMinutes: 10 });
+
+    const res = await request(app)
+      .post(`/api/tests/${emptyTest._id}/submit`)
+      .set(authHeader(student))
+      .send({ answers: [] });
+
+    expect(res.status).toBe(404);
+    expect(res.body.error.code).toBe('TEST_NOT_FOUND');
+    expect(await Result.countDocuments({ studentId: student._id })).toBe(0);
+    expect(await Activity.countDocuments({ studentId: student._id })).toBe(0);
+  });
+});
