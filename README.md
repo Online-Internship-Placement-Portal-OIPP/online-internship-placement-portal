@@ -46,6 +46,39 @@ A web-based platform that gives students a single place to discover internship o
 
 The full API contract (request and response shapes, error codes) is in [`CLAUDE.md` §6–§7](CLAUDE.md#6-api-contract-sad-43--base-path-api-json-only).
 
+### Requirement → Issue traceability
+
+Every requirement in SRS v1.1 is delivered by at least one GitHub issue (user story). Each issue carries a matching label (`FR-xx`, `NFR-xx`, `SR-xx`, `SO-xx`), so clicking a label on GitHub lists every issue for that requirement.
+
+| Requirement | Issue(s) |
+|---|---|
+| FR-01 Student registration | [#6](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/6) (S1-01) |
+| FR-02 Login | [#7](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/7) (S1-02) |
+| FR-03, FR-04 Internship listing, search and filters | [#8](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/8) (S1-03) |
+| FR-05 Internship details | [#9](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/9) (S1-04) |
+| FR-06 Apply for an internship | [#10](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/10) (S1-05) |
+| FR-07 My applications | [#11](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/11) (S1-06) |
+| FR-08, FR-09 Test list and test-taking | [#14](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/14) (S2-01) |
+| FR-10, FR-11 Server-side scoring and results | [#15](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/15) (S2-02) |
+| FR-12 Record preparation activity | [#10](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/10) (S1-05), [#15](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/15) (S2-02), [#18](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/18) (S2-05) |
+| FR-13 Preparation progress | [#18](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/18) (S2-05) |
+| FR-14 Performance analysis | [#21](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/21) (S2-08) |
+| FR-15 Admin manages internships | [#12](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/12) (S1-07) |
+| FR-16 Admin manages tests and questions | [#16](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/16) (S2-03) |
+| NFR-01 Response time | [#22](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/22) (S2-09) |
+| NFR-02 Authentication before student data | [#4](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/4) (S0-04), [#7](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/7) (S1-02) |
+| NFR-03 Admin-only functions | [#4](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/4) (S0-04), [#12](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/12) (S1-07), [#16](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/16) (S2-03) |
+| NFR-04 No duplicate applications, data integrity | [#10](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/10) (S1-05), [#15](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/15) (S2-02), [#22](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/22) (S2-09) |
+| NFR-05 Navigation and dashboard | [#5](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/5) (S0-05), [#19](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/19) (S2-06) |
+| SO-01, SO-02 Security objectives | [#17](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/17) (S2-04) |
+| SR-01 Authentication | [#4](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/4) (S0-04), [#7](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/7) (S1-02), [#13](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/13) (S1-08), [#17](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/17) (S2-04) |
+| SR-02 Authorization | [#4](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/4) (S0-04), [#12](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/12) (S1-07), [#13](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/13) (S1-08), [#16](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/16) (S2-03) |
+| SR-03 Password protection | [#6](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/6) (S1-01), [#13](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/13) (S1-08) |
+| SR-04 Protected student data | [#11](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/11) (S1-06) |
+| SR-05 Backend/API authorization | [#4](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/4) (S0-04), [#13](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/13) (S1-08), [#17](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/17) (S2-04) |
+
+Issues [#1](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/1)–[#3](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/3) (Sprint 0 setup) and [#20](https://github.com/Online-Internship-Placement-Portal-OIPP/online-internship-placement-portal/issues/20) (final documentation) support the project as a whole and map to no single requirement.
+
 ---
 
 ## Screenshots
